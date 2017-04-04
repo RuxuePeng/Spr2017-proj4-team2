@@ -5,7 +5,7 @@ date: "3/22/2017"
 output: pdf_document
 ---
 
-This file is currently a template for implementing one of the suggested papers, Han, Zha, & Giles (2005). Due to the nature of the method, we only implement the method on a subset of the data, "AKumar.txt". In your project, you need to work on the whole dataset. You should follow the same structure as in this tutorial, but update it according to the papers you are assigned.
+In this project, we implement one of the suggested papers, Culotta (2007). 
 
 ## Step 0: Load the packages, specify directories
 
@@ -25,8 +25,12 @@ if(length(packages.needed)>0){
 library(plyr)
 library(text2vec)
 library(qlcMatrix)
-# here replace it with your own path or manually set it in RStudio
-# to where this rmd file is located
+```
+
+```{r}
+# Please set the working directory to the "nameset" folder
+setwd("../Spr2017-proj4-team2/data/nameset")
+
 ```
 
 ## Step 1: Load and process the data
@@ -34,29 +38,21 @@ library(qlcMatrix)
 For each record in the dataset, there are some information we want to extract and store them in a regular form: canonical author id, coauthors, paper title, publication venue title. You may need to find regular matched in the input string vectors by using regex in R. Here is a tutorial for regular expression in R, which might help you <https://rstudio-pubs-static.s3.amazonaws.com/74603_76cd14d5983f47408fdf0b323550b846.html>
 
 ```{r}
-# setwd("/Users/ZHANGJIAHAO/Spr2017-proj4-team2/data/nameset")
 #function for data pre-processing
 create_data <- function(filename){
   #name <- deparse(substitute(filename))
   tmp <- read.csv(filename,
-                  header = F,sep = "\n")    
+                  header = F,
+                  sep = "\n")    
   rule = "<([[:alpha:]]|[[:punct:]]){1,4}>"
   tmp$V1 = gsub(rule,"",tmp$V1)
   rule1 = ">([[:alpha:]]){1,5}:"
   tmp$V1 = gsub(rule1,">",tmp$V1)
-  
-  
   Sys.setlocale('LC_ALL','C')
-  
-  
   L = strsplit(tmp$V1,split = ">")
   tmp$Coauthor = laply(L,function(t) t[1])
   tmp$Paper = laply(L,function(t) t[2])
   tmp$Journal = laply(L,function(t) t[3])
-  #write(tmp$V1,"tmp_1.txt",sep = "\n")
-  #tmp_1 <- strsplit(tmp,split = ">")
-  
-  # This need to be modified for different name set
   
   # extract canonical author id befor "_"
   tmp$AuthorID <- as.numeric(sub("_.*","",tmp$Coauthor))
@@ -73,6 +69,7 @@ create_data <- function(filename){
   return(tmp)
 }
 ```
+
 ```{r}
 ## apply function
 file_names <- list.files(pattern = "*.txt")
