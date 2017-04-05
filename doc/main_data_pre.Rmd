@@ -10,7 +10,7 @@ In this project, we implement one of the suggested papers, Culotta (2007).
 ## Step 0: Load the packages, specify directories
 
 ```{r}
-packages.used=c("plyr","text2vec","qlcMatrix")
+packages.used=c("plyr","text2vec","qlcMatrix","kernlab")
 
 # check packages that need to be installed.
 packages.needed=setdiff(packages.used, 
@@ -25,14 +25,8 @@ if(length(packages.needed)>0){
 library(plyr)
 library(text2vec)
 library(qlcMatrix)
+library(kernlab)
 ```
-
-```{r}
-# Please set the working directory to the "nameset" folder
-setwd("../Spr2017-proj4-team2/data/nameset")
-
-```
-
 ## Step 1: Load and process the data
 
 For each record in the dataset, there are some information we want to extract and store them in a regular form: canonical author id, coauthors, paper title, publication venue title. You may need to find regular matched in the input string vectors by using regex in R. Here is a tutorial for regular expression in R, which might help you <https://rstudio-pubs-static.s3.amazonaws.com/74603_76cd14d5983f47408fdf0b323550b846.html>
@@ -72,6 +66,7 @@ create_data <- function(filename){
 
 ```{r}
 ## apply function
+setwd("../data/nameset")
 file_names <- list.files(pattern = "*.txt")
 Data = list()
 for(i in 1:length(file_names)){
@@ -98,20 +93,7 @@ To compute TF-IDF, we first need to construct a document-term matrix (DTM). In o
 
 Let???s first create a vocabulary-based DTM. Here we collect unique terms from all documents and mark each of them with a unique ID using the  `create_vocabulary()` function. We use an iterator to create the vocabulary.
 ```{r}
-it_train <- itoken(AKumar$Paper, 
-             preprocessor = tolower, 
-             tokenizer = word_tokenizer,
-             ids = AKumar$PaperID,
-             # turn off progressbar because it won't look nice in rmd
-             progressbar = FALSE)
-vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
-                                                   "at", "of", "above", "under"))
-
-vocab
-```
-
-```{r}
-it_train <- itoken(Data[[1]]$Paper, 
+it_train <- itoken(Data[[1]]$Paper,
              preprocessor = tolower, 
              tokenizer = word_tokenizer,
              ids = Data[[1]]$PaperID,
@@ -121,8 +103,8 @@ vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
                                                    "at", "of", "above", "under"))
 
 vocab
-
 ```
+
 Here, we remove pre-defined stopwords, the words like ???a???, ???the???, ???in???, ???I???, ???you???, ???on???, etc, which do not provide much useful information. 
 
 Now that we have a vocabulary list, we can construct a document-term matrix.
@@ -153,7 +135,7 @@ Following suggestion in the paper, we carry out spectral clustering on the Gram 
 ```{r}
 start.time <- Sys.time()
 result_sclust <- specc(as.matrix(dtm_train_tfidf), 
-                       centers=length(unique(AKumar$AuthorID)))
+                       centers=length(unique(Data[[1]]$AuthorID)))
 end.time <- Sys.time()
 time_sclust <- end.time - start.time
 table(result_sclust)
@@ -167,7 +149,7 @@ rownames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
 colnames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
 #compute pairwise cosine similarities using cosSparse function in package qlcMatrix
 h <- hclust(as.dist(docsdissim), method = "ward.D")
-result_hclust <- cutree(h,length(unique(AKumar$AuthorID)))
+result_hclust <- cutree(h,length(unique(Data[[1]]$AuthorID)))
 end.time <- Sys.time()
 time_hclust <- end.time - start.time
 table(result_hclust)
@@ -191,7 +173,7 @@ $$
 $$
 
 ```{r}
-source('~/Dropbox/Project4_WhoIsWho/lib/evaluation_measures.R')
+source("../lib/evaluation_measures.R")
 matching_matrix_hclust <- matching_matrix(AKumar$AuthorID,result_hclust)
 performance_hclust <- performance_statistics(matching_matrix_hclust)
 matching_matrix_sclust <- matching_matrix(AKumar$AuthorID,result_sclust)
