@@ -232,16 +232,15 @@ for(j in 1:ncol(labels) ){
     F1 [j]= (2*precision*recall)/(precision+recall)
   }
 }
-# function for computing score, input is dataframe "labels"
+
+#function for computing score, input is dataframe "labels"
 # score <- rep(NA,ncol(labels))
-# get_score <- function(labels){
-#   for (i in 1:ncol(labels)){
-#     Fea_wol_1 <- cbind(Fea_wol,label_1=labels[,i])
-#     Fea_wol_1 <- aggregate(Fea_wol_1,by=list(label_1),FUN=mean)
-#     score[i]=sum(Fea_wol_1[,-c("label_1")]%*%lamda)
-#   }
-#   
+# get_score <- function(label_i){
+#     Fea_wol_1 <- data.frame(cbind(Fea_wol,label_1=label_i))
+#     Fea_wol_1 <- aggregate(Fea_wol_1,by=list(Fea_wol_1$label_1),FUN=mean)
+#     score <- sum((as.matrix(Fea_wol_1[,-c(1,ncol(Fea_wol_1))])%*%lamda))
 # }
+# F1_test <- aaply(labels,2,get_score)
 ```
 
 
