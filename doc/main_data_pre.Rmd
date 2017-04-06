@@ -232,7 +232,10 @@ for(j in 1:ncol(labels) ){
     F1 [j]= (2*precision*recall)/(precision+recall)
   }
 }
+```
 
+## Functions for "score" and "updating lamda" on each level
+```{r}
 #function for computing score, input is dataframe "labels"
 # get_score <- function(label_i){
 #     Fea_wol_1 <- data.frame(cbind(Fea_wol,label_1=label_i))
@@ -240,6 +243,23 @@ for(j in 1:ncol(labels) ){
 #     score <- sum((as.matrix(Fea_wol_1[,-c(1,ncol(Fea_wol_1))])%*%lamda))
 # }
 # score <- aaply(labels,2,get_score)
+
+# Updating Lamda for each level after obtain F1 and score
+# extract the best score and its F1
+# ind_N_star <- which(score==max(score))
+# ind_N_hat <- which(F1==max(F1))
+# if(ind_N_star!=ind_N_hat){
+#   label_i <-labels[,ind_N_star]
+#   label_j <- labels[,ind_N_hat]
+#   Fea_wol_star <- data.frame(cbind(Fea_wol,label_1=label_i))
+#   Fea_wol_hat <- data.frame(cbind(Fea_wol,label_1=label_j))
+#   F_T_star <- rowSum(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))
+#   F_T_hat <- rowSum(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))
+#   lamda_new <- lamda + F_T_star - F_T_hat
+# }else{
+# lamda_new <- lamda
+# }
+
 ```
 
 
