@@ -27,6 +27,7 @@ library(text2vec)
 library(qlcMatrix)
 library(kernlab)
 source("../lib/F1.R")
+source("../lib/get_score.R")
 
 ```
 ## Step 1: Load and process the data
@@ -204,17 +205,12 @@ b_d = choose(nrow(Data[[1]]),2)-a_c
 #F1(one_data = Data[[1]], a_c = a_c,b_d = b_d) return a list where 1st element is F1vec, 2nd is labels matrix, 3rd is the partitioning models it tried
 F1_result = F1(one_data = Data[[1]])
 F1score = F1_result[[1]]
+labels = F1_result[[2]]
 ```
 
 ## Functions for "score" and "updating lamda" on each level
 ```{r}
-#function for computing score, input is dataframe "labels"
-# get_score <- function(label_i){
-#     Fea_wol_1 <- data.frame(cbind(Fea_wol,label_1=label_i))
-#     Fea_wol_1 <- aggregate(Fea_wol_1,by=list(Fea_wol_1$label_1),FUN=mean)
-#     score <- sum((as.matrix(Fea_wol_1[,-c(1,ncol(Fea_wol_1))])%*%lamda))
-# }
-# score <- aaply(labels,2,get_score)
+score <- aaply(labels,2,get_score)
 
 # Updating Lamda for each level after obtain F1 and score
 # extract the best score and its F1
