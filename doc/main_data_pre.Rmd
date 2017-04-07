@@ -26,6 +26,8 @@ library(plyr)
 library(text2vec)
 library(qlcMatrix)
 library(kernlab)
+source("../lib/F1.R")
+
 ```
 ## Step 1: Load and process the data
 
@@ -192,46 +194,16 @@ for(i in 1:nrow(df)){
  q2 = df[i,2]
  a_c = a_c + (y[q1]==y[q2])
 }
+a_c = as.numeric(a_c)
 b_d = choose(nrow(Data[[1]]),2)-a_c
 ```
-## Update Lamda  
+
+## Compute predicitons matrix of all the partitioning in same level and their F1s scorel  
 
 ```{r}
-## Generate different partition method
-grid = 1:nrow(Fea_wol)
-partition = expand.grid(grid,grid)
-partition = partition[( partition[,1] > partition[,2]),]
-column = seq(1,nrow(Data[[1]]))
-labels = matrix(column, nrow=length(column), ncol= nrow(partition)) 
-for(i in 1:nrow(partition)){
-  # Compute our prediction
-  label_us=labels[,i]
-  label_us = label_us + 1
-  # r1 = partition[i,][1]
-  # r2 = partition[i,][1]
-  r1 <- partition$Var1[i]
-  r2 <- partition$Var2[i]
-  label_us[r1] = 1
-  label_us[r2] = 1
-  labels[,i]=label_us
-}
-# for calculating F1
-a_b <- 0
-a_c <-0
-F1 = rep(NA,ncol(labels))
-for(j in 1:ncol(labels) ){
-  for(k in 1:nrow(df)){
-    q1 <- df[k,1]
-    q2 <- df[k,2]
-    #a_b means a+b, c_d means c+d
-    a_b <- a_b+(labels[q1,j]==labels[q2,j])
-    c_d <- choose(nrow(Data[[1]]),2)-a_b
-    a = -c_d+a_c+b_d
-    precision = a/a_b
-    recall = a/a_c
-    F1 [j]= (2*precision*recall)/(precision+recall)
-  }
-}
+#F1(one_data = Data[[1]], a_c = a_c,b_d = b_d) return a list where 1st element is F1vec, 2nd is labels matrix, 3rd is the partitioning models it tried
+F1_result = F1(one_data = Data[[1]])
+F1score = F1_result[[1]]
 ```
 
 ## Functions for "score" and "updating lamda" on each level
