@@ -26,7 +26,7 @@ library(plyr)
 library(text2vec)
 library(qlcMatrix)
 library(kernlab)
-source("../lib/F1.R")
+source("../lib/get_F1.R")
 source("../lib/get_labels.R")
 source("../lib/get_score.R")
 source("../lib/create_overlap.R")
@@ -84,6 +84,14 @@ for(i in 1:length(file_names)){
 names(Data) = file_names
 ```  
 
+## Split Train/Test  
+
+```{r}
+##Split train and test
+Train = llply(Data,Split_Train)
+Test = llply(Data,Split_Test)
+```
+
 ## Step 2: Feature Construction
 
 Following the section 3.1 in the paper, we want to use paper titles to design features for citations. As the notation used in the paper, we want to find a $m$-dimensional citation vector $\alpha_i$ for each citation $i$, $i=1,...,n$. In this dataset, $n=$ `r nrow(AKumar)`. We study "TF-IDF" (term frequency-inverse document frequency) as suggested in the paper.
@@ -104,16 +112,16 @@ Let???s first create a vocabulary-based DTM. Here we collect unique terms from a
 
 ### compute overlapping coauthor
 ```{r}
-overlap_data = create_overlap(Data[[1]][,1])
+overlap_data = create_overlap(Train[[1]][,1])
 ```  
 
 ### compute TF-IDF of paper title  
 
 ```{r}
-it_train <- itoken(Data[[1]]$Paper,
+it_train <- itoken(Train[[1]]$Paper,
              preprocessor = tolower, 
              tokenizer = word_tokenizer,
-             ids = Data[[1]]$PaperID,
+             ids = Train[[1]]$PaperID,
              # turn off progressbar because it won't look nice in rmd
              progressbar = FALSE)
 vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
@@ -128,10 +136,10 @@ paper_data = as.matrix(dtm_train_tfidf)
 ### compute TF-IDF of Journal title  
 
 ```{r}
-it_train <- itoken(Data[[1]]$Journal,
+it_train <- itoken(Train[[1]]$Journal,
              preprocessor = tolower, 
              tokenizer = word_tokenizer,
-             ids = Data[[1]]$PaperID,
+             ids = Train[[1]]$PaperID,
              # turn off progressbar because it won't look nice in rmd
              progressbar = FALSE)
 vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
@@ -143,27 +151,26 @@ dtm_train_tfidf <- fit_transform(dtm_train, tfidf)
 Journal_data = as.matrix(dtm_train_tfidf)
 ```  
 
+## Feature Reduction  
+```{r}
+# Use PCA to choose most important features
+PCA_paper = prcomp(paper_data, center = T, scale. = T)
+require("graphics")
+screeplot(PCA_paper,npcs =270,type = "lines")
+paper_data = PCA_paper$x[,1:270]
+
+PCA_journal = prcomp(Journal_data, center = T, scale. = T)
+require("graphics")
+screeplot(PCA_journal,npcs =180,type = "lines")
+Journal_data = PCA_journal$x[,1:178]
+```  
 ### combine all the features  
 
 ```{r}
 Fea_wol <- cbind(overlap_data,paper_data,Journal_data) 
-#Fea_wl = cbind(label = unlist(Data[[1]]$AuthorID),Fea_wol)
+Fea_wl = cbind(label = unlist(Train[[1]]$AuthorID),Fea_wol)
 ```  
 
-## Feature Reduction  
-```{r}
-# Use PCA to choose Top 100 most important features
-Fea_small = prcomp(Fea_wol, center = T, scale. = T)
-```  
-
-## Split Train/Test  
-
-```{r}
-##Split train and test
-Train = llply(Fea_wl,Split_Train)
-Test = llply(Fea_wl,Split_Test)
-
-```
 
 
 ## Step 3: Clustering
@@ -180,7 +187,7 @@ end.time-start.time
 
 ## calculate the match and mismatch of G
 ```{r}
-y = Data[[1]]$AuthorID
+y = Train[[1]]$AuthorID
 df = expand.grid(1:nrow(dtm_train),1:nrow(dtm_train))
 a_c = 0
 for(i in 1:nrow(df)){
@@ -189,7 +196,7 @@ for(i in 1:nrow(df)){
  a_c = a_c + (y[q1]==y[q2])
 }
 a_c = as.numeric(a_c)
-b_d = choose(nrow(Data[[1]]),2)-a_c
+b_d = choose(nrow(Train[[1]]),2)-a_c
 ```
 
 ## Compute predicitons matrix of all the partitioning in same level  
@@ -203,7 +210,7 @@ labels = get_labels()
 # initialization of lamda vector 
 s = Sys.time()
 lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol))
-while(incre/ncol(Fea_wol) > 0.0003){
+while(incre/ncol(Fea_wol) > 0.07){
   score <- aaply(labels,2,get_score)
   # extract the best score and N_hat and its F1 score
   ind_N_hat <- which.max(score)
@@ -213,7 +220,7 @@ while(incre/ncol(Fea_wol) > 0.0003){
   
   # extract N_star
   for(i in 1:ncol(labels)){
-    tmp = F1(init_label = labels[,i])
+    tmp = get_F1(init_label = labels[,i])
     if(tmp>F1_N_hat){
       ind_N_star = i
       break()
@@ -241,7 +248,7 @@ rownames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
 colnames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
 #compute pairwise cosine similarities using cosSparse function in package qlcMatrix
 h <- hclust(as.dist(docsdissim), method = "ward.D")
-result_hclust <- cutree(h,length(unique(Data[[1]]$AuthorID)))
+result_hclust <- cutree(h,length(unique(Train[[1]]$AuthorID)))
 end.time <- Sys.time()
 time_hclust <- end.time - start.time
 table(result_hclust)
