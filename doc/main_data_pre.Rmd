@@ -190,17 +190,16 @@ score <- aaply(labels,2,get_score)
 # extract the best score and its F1
 # ind_N_star <- which(score==max(score))
 # ind_N_hat <- which(F1==max(F1))
-# if(ind_N_star!=ind_N_hat){
+# ind_N_star <- 1
+# ind_N_hat <- 2
 #   label_i <-labels[,ind_N_star]
 #   label_j <- labels[,ind_N_hat]
 #   Fea_wol_star <- data.frame(cbind(Fea_wol,label_1=label_i))
 #   Fea_wol_hat <- data.frame(cbind(Fea_wol,label_1=label_j))
-#   F_T_star <- rowSum(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))
-#   F_T_hat <- rowSum(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))
+#   F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))
+#   F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))
+#   incre <- sqrt(sum((F_T_hat-F_T_star)^2))
 #   lamda_new <- lamda + F_T_star - F_T_hat
-# }else{
-# lamda_new <- lamda
-# }
 
 ```
 
