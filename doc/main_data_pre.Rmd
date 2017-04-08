@@ -27,8 +27,11 @@ library(text2vec)
 library(qlcMatrix)
 library(kernlab)
 source("../lib/F1.R")
+source("../lib/get_labels.R")
 source("../lib/get_score.R")
 source("../lib/create_overlap.R")
+source("../lib/Split.R")
+
 
 
 ```
@@ -79,9 +82,9 @@ for(i in 1:length(file_names)){
   Data[[i]]= create_data(file_names[i])
 }
 names(Data) = file_names
-```
+```  
 
-## Step 2: Feature design
+## Step 2: Feature Construction
 
 Following the section 3.1 in the paper, we want to use paper titles to design features for citations. As the notation used in the paper, we want to find a $m$-dimensional citation vector $\alpha_i$ for each citation $i$, $i=1,...,n$. In this dataset, $n=$ `r nrow(AKumar)`. We study "TF-IDF" (term frequency-inverse document frequency) as suggested in the paper.
 
@@ -144,8 +147,24 @@ Journal_data = as.matrix(dtm_train_tfidf)
 
 ```{r}
 Fea_wol <- cbind(overlap_data,paper_data,Journal_data) 
-Fea_wl = cbind(label = unlist(Data[[1]]$AuthorID),Fea_wol)
+#Fea_wl = cbind(label = unlist(Data[[1]]$AuthorID),Fea_wol)
+```  
+
+## Feature Reduction  
+```{r}
+# Use PCA to choose Top 100 most important features
+Fea_small = prcomp(Fea_wol, center = T, scale. = T)
+```  
+
+## Split Train/Test  
+
+```{r}
+##Split train and test
+Train = llply(Fea_wl,Split_Train)
+Test = llply(Fea_wl,Split_Test)
+
 ```
+
 
 ## Step 3: Clustering
 
@@ -154,7 +173,7 @@ which consists of 100 clusters. Then we use the base as a start for the hierarch
 
 ```{r}
 start.time <- Sys.time()
-init_cluster = kmeans(Fea_wl,centers = 100,nstart =5)
+init_cluster = kmeans(Fea_wl,centers = 50,nstart =5)
 end.time <- Sys.time()
 end.time-start.time
 ```
@@ -173,34 +192,44 @@ a_c = as.numeric(a_c)
 b_d = choose(nrow(Data[[1]]),2)-a_c
 ```
 
-## Compute predicitons matrix of all the partitioning in same level and their F1s scorel  
+## Compute predicitons matrix of all the partitioning in same level  
 
 ```{r}
-#F1(one_data = Data[[1]], a_c = a_c,b_d = b_d) return a list where 1st element is F1vec, 2nd is labels matrix, 3rd is the partitioning models it tried
-F1_result = F1(one_data = Data[[1]])
-F1score = F1_result[[1]]
-labels = F1_result[[2]]
+labels = get_labels()
 ```
 
 ## Functions for "score" and "updating lamda" on each level
 ```{r}
-score <- aaply(labels,2,get_score)
-
-# Updating Lamda for each level after obtain F1 and score
-# extract the best score and its F1
-# ind_N_star <- which(score==max(score))
-# ind_N_hat <- which(F1==max(F1))
-# ind_N_star <- 1
-# ind_N_hat <- 2
-#   label_i <-labels[,ind_N_star]
-#   label_j <- labels[,ind_N_hat]
-#   Fea_wol_star <- data.frame(cbind(Fea_wol,label_1=label_i))
-#   Fea_wol_hat <- data.frame(cbind(Fea_wol,label_1=label_j))
-#   F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))
-#   F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))
-#   incre <- sqrt(sum((F_T_hat-F_T_star)^2))
-#   lamda_new <- lamda + F_T_star - F_T_hat
-
+# initialization of lamda vector 
+s = Sys.time()
+lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol))
+while(incre/ncol(Fea_wol) > 0.0003){
+  score <- aaply(labels,2,get_score)
+  # extract the best score and N_hat and its F1 score
+  ind_N_hat <- which.max(score)
+  #ind_N_star <- which(F1==max(F1))
+  label_i <-labels[,ind_N_hat]
+  F1_N_hat = get_F1(label_i)
+  
+  # extract N_star
+  for(i in 1:ncol(labels)){
+    tmp = F1(init_label = labels[,i])
+    if(tmp>F1_N_hat){
+      ind_N_star = i
+      break()
+    }
+  }
+  label_j <- labels[,ind_N_star]
+  # update lamda
+  Fea_wol_star <- data.frame(cbind(label_1=label_i,Fea_wol))
+  Fea_wol_hat <- data.frame(cbind(label_1=label_j,Fea_wol))
+  F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))[-c(1,2)]
+  F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))[-c(1,2)]
+  incre <- sqrt(sum((F_T_hat-F_T_star)^2))
+  lamda = lamda + F_T_star - F_T_hat
+}
+t = Sys.time()-s
+#at last, we'll have the ultimate N_hat: label_i, lamda
 ```
 
 
