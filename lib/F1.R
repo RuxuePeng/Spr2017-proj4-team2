@@ -4,13 +4,11 @@
 #NOTE: need to have: Data as list first,each list contain info about 1 citation; 
 #                    y as the true label vector to compute a+c and b+d
 #######################################################################################
-F1 = function(one_data = Data[[1]], a_c = a_c,b_d = b_d){
-
-  #Grid: the total number of example
+F1 = function(init_label = init_cluster$cluster, a_c = a_c,b_d = b_d){
   #pairlist: all the possible pair assignments of all the articles
   #pairnumber: number of all the possible pair assignments
-  Grid = nrow(one_data)
-  w = 1:max(as.numeric(one_data$PaperID))
+  Grid = length(unique(init_label))
+  w = 1:nrow(dtm_train)
   pairlist = expand.grid(w,w)
   pairlist = pairlist[(pairlist[,1]>pairlist[,2]),]
   pairnumber = nrow(pairlist)
@@ -21,7 +19,7 @@ F1 = function(one_data = Data[[1]], a_c = a_c,b_d = b_d){
   partition = partition[( partition[,1] > partition[,2]),]
   # assign initial labels of all the partition methods
   # which is just unique number for each example
-  column = seq(1,Grid)
+  column = init_cluster$cluster
   labels = matrix(column, nrow=length(column), ncol= nrow(partition)) 
   F1 = rep(NA,ncol(labels))
   
@@ -37,8 +35,7 @@ F1 = function(one_data = Data[[1]], a_c = a_c,b_d = b_d){
     ## empty the 1st position for new assignment
     label_us = label_us + 1
     ## merge and assign new cluster as 1st cluster
-    label_us[r1] = 1
-    label_us[r2] = 1
+    label_us[merge_list] = 1
     ## update labels matrix with new label
     labels[,i]=label_us
     
