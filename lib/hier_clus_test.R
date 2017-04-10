@@ -25,10 +25,11 @@ Hier_clus= function(Fea_wl,Fea_wol,Lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol)),da
       # extract N_star
       for(i in 1:ncol(labels)){
         tmp = get_F1(init_label = labels[,i],A_C = a_c,B_D = b_d)
-        if(tmp>F1_N_hat){
+        if(tmp > F1_N_hat){
           ind_N_star = i
           break()
         }
+        else{ind_N_star = ind_N_hat}
       }
       label_j <- labels[,ind_N_star]
       # update lamda
