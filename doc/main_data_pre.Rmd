@@ -31,7 +31,12 @@ source("../lib/get_labels.R")
 source("../lib/get_score.R")
 source("../lib/create_overlap.R")
 source("../lib/Split.R")
-
+source("../lib/get_GoldStand.R")
+#source("../lib/hier_clus.R")
+source("../lib/hier_clus_test.R")
+source("../lib/create_journal.R")
+source("../lib/create_paper.R")
+source("../lib/get_feature.R")
 
 
 ```
@@ -110,28 +115,6 @@ To compute TF-IDF, we first need to construct a document-term matrix (DTM). In o
 
 Let???s first create a vocabulary-based DTM. Here we collect unique terms from all documents and mark each of them with a unique ID using the  `create_vocabulary()` function. We use an iterator to create the vocabulary.  
 
-### compute overlapping coauthor
-```{r}
-overlap_data = create_overlap(Train[[1]][,1])
-```  
-
-### compute TF-IDF of paper title  
-
-```{r}
-it_train <- itoken(Train[[1]]$Paper,
-             preprocessor = tolower, 
-             tokenizer = word_tokenizer,
-             ids = Train[[1]]$PaperID,
-             # turn off progressbar because it won't look nice in rmd
-             progressbar = FALSE)
-vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
-                                                   "at", "of", "above", "under"))
-vectorizer <- vocab_vectorizer(vocab)
-dtm_train <- create_dtm(it_train, vectorizer)
-tfidf <- TfIdf$new()
-dtm_train_tfidf <- fit_transform(dtm_train, tfidf)
-paper_data = as.matrix(dtm_train_tfidf)
-```  
 
 ### compute TF-IDF of Journal title  
 
@@ -148,110 +131,32 @@ vectorizer <- vocab_vectorizer(vocab)
 dtm_train <- create_dtm(it_train, vectorizer)
 tfidf <- TfIdf$new()
 dtm_train_tfidf <- fit_transform(dtm_train, tfidf)
-Journal_data = as.matrix(dtm_train_tfidf)
 ```  
 
 ## Feature Reduction  
-```{r}
-# Use PCA to choose most important features
-PCA_paper = prcomp(paper_data, center = T, scale. = T)
-require("graphics")
-screeplot(PCA_paper,npcs =270,type = "lines")
-paper_data = PCA_paper$x[,1:270]
-
-PCA_journal = prcomp(Journal_data, center = T, scale. = T)
-require("graphics")
-screeplot(PCA_journal,npcs =180,type = "lines")
-Journal_data = PCA_journal$x[,1:178]
-```  
-### combine all the features  
-
-```{r}
-Fea_wol <- cbind(overlap_data,paper_data,Journal_data) 
-Fea_wl = cbind(label = unlist(Train[[1]]$AuthorID),Fea_wol)
-```  
-
-
+We use PCA to reduce features and wrote feature construction function: get_feature().   
 
 ## Step 3: Clustering
 
 We will adopt hard start on the clustering, meaning that we'll use the true labels to create a base partitioning,  
 which consists of 100 clusters. Then we use the base as a start for the hierarchical clustering on the matrix of the citation vectors.  
-
 ```{r}
-start.time <- Sys.time()
-init_cluster = kmeans(Fea_wl,centers = 50,nstart =5)
-end.time <- Sys.time()
-end.time-start.time
-```
-
-## calculate the match and mismatch of G
-```{r}
-y = Train[[1]]$AuthorID
-df = expand.grid(1:nrow(dtm_train),1:nrow(dtm_train))
-a_c = 0
-for(i in 1:nrow(df)){
- q1 = df[i,1]
- q2 = df[i,2]
- a_c = a_c + (y[q1]==y[q2])
-}
-a_c = as.numeric(a_c)
-b_d = choose(nrow(Train[[1]]),2)-a_c
-```
-
-## Compute predicitons matrix of all the partitioning in same level  
-
-```{r}
-labels = get_labels()
-```
-
-## Functions for "score" and "updating lamda" on each level
-```{r}
-# initialization of lamda vector 
+# for 1st time in a txt
 s = Sys.time()
-lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol))
-while(incre/ncol(Fea_wol) > 0.07){
-  score <- aaply(labels,2,get_score)
-  # extract the best score and N_hat and its F1 score
-  ind_N_hat <- which.max(score)
-  #ind_N_star <- which(F1==max(F1))
-  label_i <-labels[,ind_N_hat]
-  F1_N_hat = get_F1(label_i)
-  
-  # extract N_star
-  for(i in 1:ncol(labels)){
-    tmp = get_F1(init_label = labels[,i])
-    if(tmp>F1_N_hat){
-      ind_N_star = i
-      break()
-    }
-  }
-  label_j <- labels[,ind_N_star]
-  # update lamda
-  Fea_wol_star <- data.frame(cbind(label_1=label_i,Fea_wol))
-  Fea_wol_hat <- data.frame(cbind(label_1=label_j,Fea_wol))
-  F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))[-c(1,2)]
-  F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))[-c(1,2)]
-  incre <- sqrt(sum((F_T_hat-F_T_star)^2))
-  lamda = lamda + F_T_star - F_T_hat
+  Fea = get_feature(Train[[1]])
+  Fea_wol = Fea[[1]]
+  Fea_wl = Fea[[2]]
+  best_lamda = Hier_clus(Fea_wl = Fea_wl,Fea_wol = Fea_wol,data = Train[[1]])
+t = Sys.time() - s
+for(txt in 2:14){
+  Fea = get_feature(Train[[txt]])
+  Fea_wol = Fea[[1]]
+  Fea_wl = Fea[[2]]
+  #lamda has a default: equal weights
+  best_lamda = Hier_clus(Fea_wl = Fea_wl,Fea_wol = Fea_wol,lamda = best_lamda,data = Train[[txt]])
 }
-t = Sys.time()-s
-#at last, we'll have the ultimate N_hat: label_i, lamda
-```
+# at last, we trained the lamda using 14 txt file(half of the citations)
 
-
-We can also using hierarchical clustering method under the cosine distance. The intention of using a different clustering method is just to let you know how to compare performance between various methods. 
-```{r}
-start.time <- Sys.time()
-docsdissim <- cosSparse(t(dtm_train_tfidf))
-rownames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
-colnames(docsdissim) <- c(1:nrow(dtm_train_tfidf))
-#compute pairwise cosine similarities using cosSparse function in package qlcMatrix
-h <- hclust(as.dist(docsdissim), method = "ward.D")
-result_hclust <- cutree(h,length(unique(Train[[1]]$AuthorID)))
-end.time <- Sys.time()
-time_hclust <- end.time - start.time
-table(result_hclust)
 ```
 
 ## Step 4: Evaluation
@@ -270,6 +175,9 @@ $$
 \mbox{Accuracy}&=\frac{a+d}{a+b+c+d}
 \end{aligned}
 $$
+```{r}
+
+```
 
 ```{r}
 source("../lib/evaluation_measures.R")
