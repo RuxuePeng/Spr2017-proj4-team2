@@ -82,6 +82,7 @@ create_data <- function(filename){
 ## apply function
 setwd("../data/nameset")
 file_names <- list.files(pattern = "*.txt")
+file_names = file_names[-c(6,7,10)]
 Data = list()
 for(i in 1:length(file_names)){
   Data[[i]]= create_data(file_names[i])
@@ -148,12 +149,12 @@ s = Sys.time()
   Fea_wl = Fea[[2]]
   best_lamda = Hier_clus(Fea_wl = Fea_wl,Fea_wol = Fea_wol,data = Train[[1]])
 t = Sys.time() - s
-for(txt in 2:14){
+for(txt in 2:11){
   Fea = get_feature(Train[[txt]])
   Fea_wol = Fea[[1]]
   Fea_wl = Fea[[2]]
   #lamda has a default: equal weights
-  best_lamda = Hier_clus(Fea_wl = Fea_wl,Fea_wol = Fea_wol,lamda = best_lamda,data = Train[[txt]])
+  best_lamda = Hier_clus(Fea_wl = Fea_wl,Fea_wol = Fea_wol,Lamda = best_lamda,data = Train[[txt]])
 }
 # at last, we trained the lamda using 14 txt file(half of the citations)
 
