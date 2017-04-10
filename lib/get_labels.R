@@ -11,7 +11,7 @@ partition = expand.grid(1:Grid,1:Grid)
 partition = partition[( partition[,1] > partition[,2]),]
 # assign initial labels of all the partition methods
 # which is just unique number for each example
-column = init_cluster$cluster
+column = init_label
 labels = matrix(column, nrow=length(column), ncol= nrow(partition)) 
 
 #(2) loop over different partitioning in this level and compute F1 score vec
