@@ -32,12 +32,12 @@ source("../lib/get_score.R")
 source("../lib/create_overlap.R")
 source("../lib/Split.R")
 source("../lib/get_GoldStand.R")
-#source("../lib/hier_clus.R")
-source("../lib/hier_clus_test.R")
+source("../lib/hier_clus_train.R")
+source("../lib/hier_clus_for_test.R")
 source("../lib/create_journal.R")
 source("../lib/create_paper.R")
 source("../lib/get_feature.R")
-
+source("../lib/Hier_clus_for_test.R")
 
 ```
 ## Step 1: Load and process the data
@@ -177,7 +177,13 @@ $$
 \end{aligned}
 $$
 ```{r}
-
+#Evaluate on test set
+s = Sys.time()
+  Fea_test = get_feature(Test[[1]])
+  Fea_wol_test = Fea_test[[1]]
+  Fea_wl_test = Fea_test[[2]]
+  test1= Hier_clus_test(Fea_wl = Fea_wl_test,Fea_wol = Fea_wol_test, Lamda= rep(1/337, 337), data = Test[[1]])
+t = Sys.time() - s
 ```
 
 ```{r}
