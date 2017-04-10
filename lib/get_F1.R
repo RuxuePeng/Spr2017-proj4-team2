@@ -7,7 +7,7 @@
 get_F1 = function(init_label, A_C = a_c,B_D = b_d){
   #pairlist: all the possible pair assignments of all the articles
   #pairnumber: number of all the possible pair assignments
-  w = 1:nrow(dtm_train)
+  w = 1:length(init_label)
   pairlist = expand.grid(w,w)
   pairlist = pairlist[(pairlist[,1]>pairlist[,2]),]
   pairnumber = nrow(pairlist)
