@@ -13,5 +13,7 @@ create_overlap = function(Authorcol){
       overlap_mat[i,j] = sum(tmp[[i]] %in% tmp[[j]])
     }
   }
+  overlap_mat = overlap_mat[,(colSums(overlap_mat)!=0)]
+  #PCA
   return(overlap_mat)
 }
