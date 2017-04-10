@@ -1,6 +1,6 @@
-get_GoldStand = function(mydata = Data[[1]]){
+get_GoldStand = function(mydata){
   y = mydata$AuthorID
-  df = expand.grid(1:nrow(dtm_train),1:nrow(dtm_train))
+  df = expand.grid(1:nrow(mydata),1:nrow(mydata))
   a_c = 0
   for(i in 1:nrow(df)){
     q1 = df[i,1]
