@@ -3,7 +3,7 @@
 Hier_clus= function(Fea_wl,Fea_wol,Lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol)),data = Train[[1]]){
   #hard start
   lamda = Lamda
-  N = (max(data$AuthorID)+2)
+  N = 50
   init_cluster = kmeans(Fea_wl,centers = N,nstart =1)
   G = get_GoldStand(data)
   y = G$y
@@ -15,7 +15,7 @@ Hier_clus= function(Fea_wl,Fea_wol,Lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol)),da
   for (v in 1: (N -length(unique(y)))){
     labels= get_labels(init_label= label_i)
     for(j in 1){
-      score <- aaply(labels,2,get_score,lamda)
+      score <- aaply(labels,2,get_score,lamda,Fea_wol)
       # extract the best score and N_hat and its F1 score
       ind_N_hat <- which.max(score)
       #ind_N_star <- which(F1==max(F1))
@@ -38,7 +38,7 @@ Hier_clus= function(Fea_wl,Fea_wol,Lamda = rep(1/ncol(Fea_wol),ncol(Fea_wol)),da
       F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))[-c(1,2)]
       F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))[-c(1,2)]
       incre <- sqrt(sum((F_T_hat-F_T_star)^2))
-      lamda = lamda + F_T_star - F_T_hat
+      lamda = lamda + 0.5*F_T_star - 0.5*F_T_hat
     }
   }
   return(lamda)
