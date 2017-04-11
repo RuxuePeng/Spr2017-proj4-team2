@@ -10,6 +10,7 @@
 df<-function(A){
   # A is a list and a identity author
   coa<-data.frame(name=matrix(unlist(A)),stringsAsFactors = FALSE)
+  coa<-as.data.frame(apply(coa,2,function(x)gsub('-','',x)),stringsAsFactors = FALSE)
   coa<-as.data.frame(apply(coa,2,function(x)gsub('\\s+','',x)),stringsAsFactors = FALSE)
   # Count the number of time one paricular coauthor appears
   df<-as.data.frame(table(coa$name),stringsAsFactors = FALSE)
