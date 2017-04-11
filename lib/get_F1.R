@@ -28,5 +28,5 @@ get_F1 = function(init_label,data,A_C = a_c,B_D = b_d){
     precision = a/a_b
     recall = a/A_C
     F1 = (2*precision*recall)/(precision+recall)   
-   return(list(F1=F1,A = a,A_B = a_b,C_D = c_d,A_C = A_C,B_D = B_D))
+   return(F1)
 }
