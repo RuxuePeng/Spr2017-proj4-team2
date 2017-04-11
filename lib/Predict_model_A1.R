@@ -2,12 +2,12 @@
 # Input is a citation which just contains coauthors
 # Output is label, 0 means given citation doesn't contain any coauthors 
 
-citation_A1<-function(citation_A1){
+citation_A1<-function(citation_A1,author_name){
   test_i<-citation_A1
   test_i<-strsplit(test_i,split = ";")
   test_i<-as.data.frame(matrix(unlist(test_i)),stringsAsFactors = FALSE)
   test_i<-as.data.frame(apply(test_i,2,function(x)gsub('\\s+','',x)),stringsAsFactors = FALSE)
-  test_i<-as.data.frame(test_i[!test_i$V1 == "AKumar",],stringsAsFactors = FALSE)
+  test_i<-as.data.frame(test_i[!test_i$V1 == author_name,],stringsAsFactors = FALSE)
   colnames(test_i)<-"coauthor"
   #class(test1)
   
@@ -15,13 +15,13 @@ citation_A1<-function(citation_A1){
     predict_label<-0
   }else{
     # extract the number of times xi coauthors with A1k
-    seen_df_i<-matrix(NA, nrow = nrow(seen_df),ncol = nrow(test_i))
+    seen_df_i<-matrix(NA, nrow = n,ncol = nrow(test_i))
     colnames(seen_df_i) <- test_i$coauthor
     for(i in 1:ncol(seen_df_i)){
-      if(test_i[i,1] %in% colnames(seen_df)){
-        seen_df_i[,i]<-seen_df[,colnames(seen_df)==test_i[i,1]]
+      if(test_i[i,1] %in% colnames(SEEN_DF)){
+        seen_df_i[,i]<-SEEN_DF[,colnames(SEEN_DF)==test_i[i,1]]
       }else{
-        seen_df_i[,i]<-rep(0,nrow(seen_df))
+        seen_df_i[,i]<-rep(0,n)
       }
     }
     
