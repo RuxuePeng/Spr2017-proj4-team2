@@ -1,0 +1,150 @@
+---
+title: "Naive Bayes Approach"
+output: html_notebook
+---
+
+```{r loading libraryies and Data, eval=FALSE, include=FALSE}
+library(dplyr)
+library(plyr)
+load("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/data/Data.RData")
+```
+
+```{r load function, eval=FALSE, include=FALSE}
+source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/Naive_A1_df.r")
+source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/Predict_model_A1.r")
+source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/Split.r")
+source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/Log_A1_Value.r")
+```
+
+```{r Generate trainset and test set}
+train<- Split_Train(Data$YChen.txt)[,c(2,5)]
+test<-Split_Test(Data$YChen.txt)[,c(2,5)]
+```
+
+
+```{r Creat a A1 dictionary based on trainset, warning=FALSE}
+
+a_train<-tapply(train$Coauthor,train$AuthorID,strsplit,split=";")
+#a_train<-subset(a_train,llply(a_train, length) != 1)
+#class(a_train)
+
+# Create a dataframe of author DJohnson
+
+# number of indentity authors
+n<-length(a_train)
+
+Author_data<-data.frame()
+for(i in 1:n){
+  author<-df(a_train[[i]])
+  author$author_id<-i
+  Author_data<-rbind(Author_data,author)
+}
+
+# Remove author him/herself
+#Author_data<-Author_data[which(Author_data$Var1 != "DJohnson"),]
+# Remove blanket
+Author_data<-Author_data[which(Author_data$Var1 != ""),]
+
+# number of all authors and coauthors
+all_a_c<-length(unique(Author_data$Var1))+length(a_train)
+
+# number of coauthors of xi
+number_coa_xi<-rep(NA, n)
+for(i in 1:n){
+  number_coa_xi[i]<-nrow(Author_data[Author_data$author_id == i,])
+}
+
+
+# What we need to compute is prob_A1k_seencoxi
+# Creat a dataframe seen_df which shows number of times xi coauthors with A1k
+seen_df<-as.data.frame(matrix(NA,ncol = nrow(Author_data),nrow = n))
+colnames(seen_df)<-Author_data$Var1
+
+for (i in 1:n){
+  for (j in 1: nrow(Author_data)){
+    seen_df[i,j]<-ifelse(Author_data$author_id[j] == i,
+                         Author_data$numer_xi_seen_coau[j],0)}}
+
+unique_coauthor<-unique(colnames(seen_df))
+SEEN_DF<-matrix(NA, nrow = n,ncol = length(unique_coauthor))
+colnames(SEEN_DF)<-unique_coauthor
+
+for(i in 1:length(unique_coauthor)){
+  
+  logical_v<-colnames(seen_df) == unique_coauthor[i]
+  
+  if(sum(logical_v)>1){
+    SEEN_DF[,i]<-rowSums(seen_df[,colnames(seen_df) == i])
+  }else{
+    SEEN_DF[,i]<-seen_df[,logical_v]
+  }
+}
+
+# number of times xi coauthors with any seen coauthors
+nxi_seen<-tapply(Author_data$numer_xi_seen_coau,Author_data$author_id,sum)
+
+# p(seen | co,xi)
+p_seen_coxi<-as.numeric(tapply(Author_data$prob_seen_cox1,Author_data$author_id,unique))
+p_seen_coxi[which(is.na(p_seen_coxi)|p_seen_coxi == Inf|p_seen_coxi == -Inf)]<-0
+
+# p(co | xi)
+p_co_xi<-as.numeric(tapply(Author_data$prob_cox1,Author_data$author_id,unique))
+
+# p(unseen|co,xi)
+p_unseen_coxi<-as.numeric(tapply(Author_data$prob_unseen_cox1,Author_data$author_id,unique))
+p_unseen_coxi[which(is.na(p_unseen_coxi)|p_unseen_coxi == Inf|p_unseen_coxi == -Inf)]<-0
+
+# p(A1k|unseen,co,xi)
+p_A1k_unseencoxi<-1/(all_a_c - number_coa_xi)
+
+# The first seen term
+seen_term<-p_seen_coxi*p_co_xi
+
+# The second term of object function p(A1k|unseen,co,xi)*p(unseen|co,xi)*p(co | xi) becomes
+unseen_term<-p_A1k_unseencoxi*p_unseen_coxi*p_co_xi
+
+# p(xi)
+count_xi<-as.numeric(table(train$AuthorID))
+p_xi<-count_xi/sum(count_xi)
+```
+
+
+```{r Model output label, warning=FALSE}
+# Transfer above into a function
+#Transfer the citation of into a data frame
+
+predict_label<-rep(NA, nrow(test))
+predict_label<-c()
+for(i in 1:nrow(test)){
+  predict_label[i]<-citation_A1(test[i,1])}
+#predict_label
+
+predict_label<-as.numeric(predict_label)
+
+acc<-sum(test$AuthorID == predict_label)/nrow(test)
+```
+
+```{r Results of the datasets}
+#accuracy_rate<-rep(NA,11)
+accuracy_rate[11]<-acc
+SLee.txt<-predict_label
+```
+
+```{r}
+label<-list(AGupta=AGupta.txt,AKumar=AKumar.txt,CChen=CChen.txt,DJohnson=DJohnson.txt,Jlee=JLee.txt,JSmith=JSmith.txt,KTanaka=KTanaka.txt,MBrown=MBrown.txt,MJones=MJones.txt, MMiller=MMiller.txt, SLee=SLee.txt, YChen=YChen.txt)
+names(accuracy_rate)<-names(label)
+accuracy_rate
+
+write.csv(accuracy_rate,"/Users/xuxuanzi/Desktop/accuracy_rate.csv")
+save(label, file ="/Users/xuxuanzi/Desktop/A1_label.RData" )
+```
+
+```{r, warning=FALSE}
+# Calculating the Log value 
+Log_A1<-matrix(NA, nrow = n, ncol = nrow(test))
+for(i in 1: nrow(test)){
+  Log_A1[,i]<-Log_A1_value(test[i,1])}
+YChen_log<-Log_A1
+save(YChen_log,file = "/Users/xuxuanzi/Desktop/A1_data/YChen_log.RData")
+```
+
