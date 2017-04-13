@@ -28,9 +28,10 @@ get_F1 = function(init_label,data,A_C = a_c,B_D = b_d){
     a = 0
     # PARALLEL PROCESSING
     cores <- detectCores()-1
-    cl2 = makeCluster(cores,type = "FORK")
-    df = parApply(cl2,pairlist,1,Fun1,y,init_label)
-    stopCluster(cl2)
+    #cl2 = makeCluster(cores,type = "FORK")
+    #df = parApply(cl2,pairlist,1,Fun1,y,init_label)
+    df = apply(cl2,pairlist,1,Fun1,y,init_label)
+    #stopCluster(cl2)
     
     a = rowSums(df)[1]
     a_b = rowSums(df)[2]
