@@ -26,6 +26,6 @@ Hier_clus_test= function(Fea_wl,Fea_wol,Lamda = best_lamda,data = Test[[1]]){
     label_i <-labels[,ind_N_hat]
     
   }
-  F1_N_hat = get_F1(label_i,A_C = a_c,B_D = b_d,data = data)
+  F1_N_hat = get_F1_accu(label_i,A_C = a_c,B_D = b_d,data = data)
   return(list(label_i,F1_N_hat))
 }
