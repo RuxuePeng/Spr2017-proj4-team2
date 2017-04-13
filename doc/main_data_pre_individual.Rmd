@@ -27,6 +27,7 @@ library(text2vec)
 library(qlcMatrix)
 library(kernlab)
 source("../lib/get_F1.R")
+source("../lib/get_F1_accu.R")
 source("../lib/get_labels_individual.R")
 source("../lib/get_score_individual.R")
 source("../lib/create_overlap.R")
@@ -82,7 +83,7 @@ create_data <- function(filename){
 ## apply function
 setwd("../data/nameset")
 file_names <- list.files(pattern = "*.txt")
-file_names = file_names[-c(6,7,10)]
+#file_names = file_names[-c(6,7,10)]
 Data = list()
 for(i in 1:length(file_names)){
   Data[[i]]= create_data(file_names[i])
