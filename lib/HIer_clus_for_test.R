@@ -1,4 +1,3 @@
-# iterate over hierarchial clustering levels
 Hier_clus_test= function(Fea_wl,Fea_wol,Lamda = best_lamda,data = Test[[1]]){
   #hard start
   lamda = Lamda
@@ -7,7 +6,7 @@ Hier_clus_test= function(Fea_wl,Fea_wol,Lamda = best_lamda,data = Test[[1]]){
   a_c =G$a_c
   b_d = G$b_d 
   
-  N = length(unique(y)) + 10
+  N = length(unique(y)) + 40
   init_cluster = kmeans(Fea_wl,centers = N,nstart =1)
   
   # initialization

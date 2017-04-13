@@ -9,14 +9,14 @@ Hier_clus= function(Fea_wl,Fea_wol,Lamda,data = Train[[1]]){
   
   #hard start
   lamda = Lamda
-  N = length(unique(y)) + 30
+  N = length(unique(y)) + 40
   init_cluster = kmeans(Fea_wl,centers = N,nstart =1)
   # initialization
   label_i= init_cluster$cluster
   
   for (v in 1: (N -length(unique(y)))){
     labels= get_labels(init_label= label_i,data = data)
-    for(j in 1:5){
+    for(j in 1:2){
     cores <- detectCores()-1
     cl1 = makeCluster(cores,type = "FORK")
     score<- parApply(cl1,labels,2,get_score,lamda,Fea_wol)
