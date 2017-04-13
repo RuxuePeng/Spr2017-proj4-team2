@@ -131,24 +131,141 @@ Test = llply(Fea,Split_Test)
 We will adopt hard start on the clustering, meaning that we'll use the true labels to create a base partitioning,  
 which consists of 100 clusters. Then we use the base as a start for the hierarchical clustering on the matrix of the citation vectors.  
 ```{r}
-# for 1st-4th txt files
-s = Sys.time()
+# for 1st file
+s1 = Sys.time()
 # using PCA, setting a threshold of 1e02 for std
 # initialize lamdas
-best_lamda = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+best_lamda1 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 1) {
-  Lam = matrix(rep(best_lamda[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
+Big_list= Big_list[1]
+best_lamda1 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
 
-best_lamda = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+t1 = Sys.time() - s1
 
-t = Sys.time() - s
+# for 2nd file
+s2 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda2 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 2) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[2]
+best_lamda2 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t2 = Sys.time() - s2
+
+# for 3rd file
+s3 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda3 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 3) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[3]
+best_lamda3 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t3 = Sys.time() - s3
+
+
+# for 4th file
+s4 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda4 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 4) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[4]
+best_lamda4 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t4 = Sys.time() - s4
+
+# for 5th file
+s5 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda5 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 5) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[5]
+best_lamda5 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t5 = Sys.time() - s5
+
+# for 6th file
+s6 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda6 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 6) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[6]
+best_lamda6 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t6 = Sys.time() - s6
+
+# for 7th file
+s7 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda7 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 7) {
+  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+Big_list= Big_list[7]
+best_lamda7 = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t7 = Sys.time() - s7
+
+#test set
+test1= Hier_clus_test(Test[[1]],Test[[1]][,-1],best_lamda1[[1]],data = Test[[1]])
+test2= Hier_clus_test(Test[[2]],Test[[2]][,-1],best_lamda2[[1]],data = Test[[2]])
+test3= Hier_clus_test(Test[[3]],Test[[3]][,-1],best_lamda3[[1]],data = Test[[3]])
+test4= Hier_clus_test(Test[[4]],Test[[4]][,-1],best_lamda4[[1]],data = Test[[4]])
+test5= Hier_clus_test(Test[[5]],Test[[5]][,-1],best_lamda5[[1]],data = Test[[5]])
+test6= Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda6[[1]],data = Test[[6]])
+test7= Hier_clus_test(Test[[7]],Test[[7]][,-1],best_lamda7[[1]],data = Test[[7]])
 ```
 
 ## Step 4: Evaluation
@@ -168,19 +285,22 @@ $$
 \end{aligned}
 $$
 ```{r}
-Hier_clus_test(Test[[11]],Test[[11]][,-1],best_lamda[[1]],data = Test[[11]])
 
+
+```
+
+```{r}
 #Evaluate on test set using best lamda provided above
 s1 = Sys.time()
 
 Big_list_test = list()
-for (i in 1:4) {
-  Lam = matrix(rep(best_lamda[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
-  Big_mat = cbind(Test[[i]],Lam)
-  Big_list_test[[i]] =  Big_mat 
-}
-
-test_result = llply(Big_list_test,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t[1,((ncol(t)+3)/2)],data = t[,1:((ncol(t)+1)/2)]))
+#for (i in 6) {
+  Lam = matrix(rep(best_lamda,nrow(Test[[6]])),byrow = T,nrow = nrow(Test[[6]]))
+  Big_mat = cbind(Test[[6]],Lam)
+  Big_list_test[[6]] =  Big_mat 
+#}
+Big_list_test= Big_list_test[6]
+test_result = llply(Big_list_test,function(t) Hier_clus_test(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2)]),data = t[,1:((ncol(t)+1)/2)]))
 
 predictions = llply(test_result, function(t) t[1])
 F1_CEPr = llply(test_result, function(t) t[2])
