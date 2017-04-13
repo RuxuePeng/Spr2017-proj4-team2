@@ -10,7 +10,7 @@ In this project, we implement one of the suggested papers, Culotta (2007).
 ## Step 0: Load the packages, specify directories
 
 ```{r}
-packages.used=c("plyr","text2vec","qlcMatrix","kernlab")
+packages.used=c("plyr","text2vec","qlcMatrix","kernlab", "parallel")
 
 # check packages that need to be installed.
 packages.needed=setdiff(packages.used, 
@@ -26,6 +26,7 @@ library(plyr)
 library(text2vec)
 library(qlcMatrix)
 library(kernlab)
+library(parallel)
 source("../lib/get_F1.R")
 source("../lib/get_F1_accu.R")
 source("../lib/get_labels_individual.R")
