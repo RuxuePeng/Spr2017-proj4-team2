@@ -35,6 +35,9 @@ get_F1 = function(init_label,data,A_C = a_c,B_D = b_d){
     a = rowSums(df)[1]
     a_b = rowSums(df)[2]
     c_d <- pairnumber-a_b
+    c = A_C - a
+    d = c_d - c
+    accu = (a+d)/(a_b + c_d)
     ## compute the precision,recall and F1 score of this partition method
     precision = a/a_b
     recall = a/A_C
