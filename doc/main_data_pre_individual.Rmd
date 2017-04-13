@@ -168,6 +168,8 @@ $$
 \end{aligned}
 $$
 ```{r}
+Hier_clus_test(Test[[11]],Test[[11]][,-1],best_lamda[[1]],data = Test[[11]])
+
 #Evaluate on test set using best lamda provided above
 s1 = Sys.time()
 
