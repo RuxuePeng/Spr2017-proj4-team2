@@ -158,7 +158,7 @@ best_lamda2 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 2) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda2[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
@@ -176,7 +176,7 @@ best_lamda3 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 3) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda3[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
@@ -195,7 +195,7 @@ best_lamda4 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 4) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda4[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
@@ -213,7 +213,7 @@ best_lamda5 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 5) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda5[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
@@ -231,7 +231,7 @@ best_lamda6 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 6) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda6[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
@@ -249,7 +249,7 @@ best_lamda7 = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
 #put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 7) {
-  Lam = matrix(rep(best_lamda1[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Lam = matrix(rep(best_lamda7[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
