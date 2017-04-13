@@ -1,0 +1,161 @@
+---
+title: "Project 4, Who is who"
+author: "Ruxue Peng,rp2815"
+date: "4/13/2017"
+output: html_document
+---  
+In this project, we implement two of the suggested papers:  
+(1) Han, Hui, et al. "Two supervised learning approaches for name disambiguation in author citations."  2004   
+(2) Culotta, Aron, et al. "Author disambiguation using error-driven machine learning with a ranking loss function." 2007  
+
+## Step 0: Load the packages and fucntions
+
+```{r, eval=FALSE}
+packages.used=c("plyr","dplyr","text2vec","qlcMatrix","kernlab", "parallel")
+# check packages that need to be installed.
+packages.needed=setdiff(packages.used, 
+                        intersect(installed.packages()[,1], 
+                                  packages.used))
+if(length(packages.needed)>0){
+  install.packages(packages.needed, dependencies = TRUE,
+                   repos='http://cran.us.r-project.org')
+}
+
+library(plyr)
+library(text2vec)
+library(qlcMatrix)
+library(kernlab)
+library(dplyr)
+library(parallel)
+source("../lib/get_F1.R")
+source("../lib/get_F1_accu.R")
+source("../lib/get_labels_individual.R")
+source("../lib/get_score_individual.R")
+source("../lib/create_overlap.R")
+source("../lib/Split_individual.R")
+source("../lib/get_GoldStand.R")
+source("../lib/hier_clus_train_individual.R")
+source("../lib/hier_clus_for_test.R")
+source("../lib/create_journal.R")
+source("../lib/create_paper.R")
+source("../lib/get_feature_individual.R")
+source("../lib/Hier_clus_for_test.R")
+
+
+```
+
+## Step 1: Data Processing - Parse Txt Data
+Following the experiment section in the paper, we used coauthors' names, paper titles as well as journal titles to design features for citations. A function create_data() is written to automate this.  
+
+```{r,eval=FALSE}
+#function for data pre-processing
+create_data <- function(filename){
+  #name <- deparse(substitute(filename))
+  tmp <- read.csv(filename,
+                  header = F,
+                  sep = "\n")    
+  rule = "<([[:alpha:]]|[[:punct:]]){1,4}>"
+  tmp$V1 = gsub(rule,"",tmp$V1)
+  rule1 = ">([[:alpha:]]){1,5}:"
+  tmp$V1 = gsub(rule1,">",tmp$V1)
+  Sys.setlocale('LC_ALL','C')
+  L = strsplit(tmp$V1,split = ">")
+  tmp$Coauthor = laply(L,function(t) t[1])
+  tmp$Paper = laply(L,function(t) t[2])
+  tmp$Journal = laply(L,function(t) t[3])
+  
+  # extract canonical author id befor "_"
+  tmp$AuthorID <- as.numeric(sub("_.*","",tmp$Coauthor))
+  # extract paper number under same author between "_" and first whitespace
+  tmp$PaperNO <- as.numeric(sub(".*_(\\w*)\\s.*", "\\1", tmp$Coauthor))
+  # delete "<" in AKumar$Coauthor, you may need to further process the coauthor
+  # term depending on the method you are using
+  tmp$Coauthor <- gsub("<","",sub("^.*?\\s","", tmp$Coauthor))
+  # delete "<" in AKumar$Paper
+  tmp$Paper <- gsub("<","",tmp$Paper)
+  # add PaperID for furthur use, you may want to combine all the nameset files and 
+  # then assign the unique ID for all the citations
+  tmp$PaperID <- rownames(tmp)
+  tmp = tmp[,-1]
+  return(tmp)
+}
+```  
+```{r,eval=FALSE}
+## apply function
+setwd("../data/nameset")
+file_names <- list.files(pattern = "*.txt")
+#file_names = file_names[-c(6,7,10)]
+Data = list()
+for(i in 1:length(file_names)){
+  Data[[i]]= create_data(file_names[i])
+}
+names(Data) = file_names
+rm(i)
+```  
+
+## Step 2: Feature Construction and PCA selection
+
+We compute the number of overlapping coauthors between 2 papers, the "TF-IDF" of paper titles and also Journal titles as suggested in the paper.   
+About "TF-IDF" (term frequency-inverse document frequency) 
+
+TF-IDF is a numerical statistics that is intended to reflect how important a word is to a document in a collection or corpus. It is often used as a weighting factor in information retrieval, text mining, and user modeling. The TF-IDF value increases proportionally to the number of times a word appears in the document, but is offset by the frequency of the word in the corpus, which helps to adjust for the fact that some words appear more frequently in general.
+
+$$
+\begin{aligned}
+\mbox{TF}(t) &=\frac{\mbox{Number of times term $t$ appears in a document}}{\mbox{Total number of terms in the document}}\\
+\mbox{IDF}(t) &=\log{\frac{\mbox{Total number of documents}}{\mbox{Number of documents with term $t$ in it}}}\\
+\mbox{TF-IDF}(t) &=\mbox{TF}(t)\times\mbox{IDF}(t)
+\end{aligned}
+$$   
+
+### Feature Construction and Reduction   
+
+We use PCA to reduce features and wrote feature construction function: get_feature(). For details of the function, please go to ../lib/get_feature.R 
+
+```{r,eval=FALSE}
+# f returns the PCAs with true labels on the 1st column
+Fea = llply(Data,get_feature)
+```  
+
+### Split Train/Test  
+
+We split each person's papers into half and half, put the first half in training set and the other half in the testing set.  
+
+```{r,eval=FALSE}
+##Split train and test
+Train = llply(Fea,Split_Train)
+Test = llply(Fea,Split_Test)
+```  
+
+```{r}
+getwd()
+```
+## Step 3: Clustering  
+Here we are trying to construct a scoring system that approximates the true score of a clustering method. If we have a good scoring system, we'll be able to pick the clustering that yields the highest score, and use its parition as prediction on the testing data, whose true assignments are unknown.  
+
+In order to do that, we need to update the scoring weight (named $Lamda$) of each features.  
+
+### Error Driven Training  
+If our scoring system picks a clustering partition that is the best, we don't have to update lamda any more. If some other clustering method outperforms it, then it is said that we have an error and thus have to update our scoring weight. This is the basic idea of error driven online training. 
+We will adopt hard start on the clustering, meaning that we'll use the true labels to create a base partitioning using kmeans.    
+Then we use the base as a start for the hierarchical clustering.  
+
+```{r,eval=FALSE}
+s1 = Sys.time()
+# using PCA, setting a threshold of 1e02 for std
+# initialize lamdas
+best_lamda = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
+
+#put every input of a txt we need into a big matrix
+Big_list = list()
+for (i in 1:14) {
+  Lam = matrix(rep(best_lamda6[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
+  Big_mat = cbind(Train[[i]],Lam)
+  Big_list[[i]] =  Big_mat 
+}
+best_lamda = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+
+t1 = Sys.time() - s1
+
+#test set
+test6= Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda6[[1]],data = Test[[6]])
