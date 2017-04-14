@@ -2,5 +2,5 @@
 
 ### Data folder
 
-The data directory contains data used in the analysis. Under the nameset folder, there are 14 txt files which contains articles written by 14 different names. The csv files are for presentations.   
+The data directory contains data used in the analysis. Under the nameset folder, there are 14 txt files which contains citations representing articles written by 14 different names. The csv files are for presentations.   
 
