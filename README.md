@@ -4,7 +4,7 @@
 
 Term: Spring 2017
 
-+ Team #
++ Team 2
 + Projec title: Who is Who -- Author Disambiguation
 + Team members
 	+ Jiahui Tan
@@ -16,8 +16,8 @@ Term: Spring 2017
 	
 **Contribution statement**: ([default](doc/a_note_on_contributions.md)) 
 
-Paper 2 is implemented by Xuanzi Xu and Tongyue Liu   
-Paper 5 is implemented by Jiahui Tan, Ruxue Peng and Jiahao Zhang
+Paper 2(Naive Bayes) is implemented by Xuanzi Xu and Tongyue Liu   
+Paper 5(Error Driven) is implemented by Jiahui Tan, Ruxue Peng and Jiahao Zhang
 
 All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
 
