@@ -2,7 +2,8 @@
 
 ### Doc folder
 
-The doc directory contains the report or presentation files. It can have subfolders.  
+The doc directory contains the report or presentation files. It can have subfolders.   
+
 Code for data preprocessing can be found in main_data_pre.Rmd.   
 
 Code for reproducing algorithm in paper 5 can be found in main_CePr.Rmd   
