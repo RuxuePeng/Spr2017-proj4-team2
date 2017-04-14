@@ -32,4 +32,4 @@ proj/
 └── output/
 ```
 
-Please see each subfolder for a README file.
+To reproduce the result, please first go to doc subfolder for a README file.
