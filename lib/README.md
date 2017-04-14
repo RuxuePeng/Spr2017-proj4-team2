@@ -17,4 +17,19 @@ get_score_individual.R
 hier_clus_train_individual.R   
 hier_clus_for_test.R   
 
+For Naive Bayes algorithm, we used:   
+dataclean.r   
+dataprocess.r   
+testclean.r   
+testprocess.r   
+dataclean3.r   
+dataprocess3.r   
+get_train_test.r   
+Naive_A1_df.r   
+Predict_model_A1.r   
+Log_A1_Value.r   
+get_F1_accu.r   
+get_F1.r   
+get_GoldStand.r   
+
 
