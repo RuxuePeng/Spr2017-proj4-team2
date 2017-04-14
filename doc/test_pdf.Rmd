@@ -8,6 +8,14 @@ In this project, we implement two of the suggested papers:
 (1) Han, Hui, et al. "Two supervised learning approaches for name disambiguation in author citations."  2004   
 (2) Culotta, Aron, et al. "Author disambiguation using error-driven machine learning with a ranking loss function." 2007  
 
+#Error Driven Paper 
+The algorithm is "C_E_Pr"  
+C: Clustering  
+E:Error Driven  
+Pr: Ranking perceptron lamda_t+1 = lamda_t + F(T)  
+
+Basically, we defined a scoring system and performed agglomerative clustering on paper citations. We updated the scoring weight $lamda$ through ranking perceptron scheme. At last, we output the best $lamda$ for the scoring system so that we could find the best clustering partition in test set.  
+
 ## Step 0: Load the packages and fucntions
 
 ```{r, eval=FALSE}
@@ -127,9 +135,6 @@ Train = llply(Fea,Split_Train)
 Test = llply(Fea,Split_Test)
 ```  
 
-```{r}
-getwd()
-```
 ## Step 3: Clustering  
 Here we are trying to construct a scoring system that approximates the true score of a clustering method. If we have a good scoring system, we'll be able to pick the clustering that yields the highest score, and use its parition as prediction on the testing data, whose true assignments are unknown.  
 
@@ -140,22 +145,151 @@ If our scoring system picks a clustering partition that is the best, we don't ha
 We will adopt hard start on the clustering, meaning that we'll use the true labels to create a base partitioning using kmeans.    
 Then we use the base as a start for the hierarchical clustering.  
 
+### Function for updating lamda   
+To see the details of functions used within, please go to lib folder.  
+
+```{r}
+Hier_clus= function(Fea_wl,Fea_wol,Lamda,data = Train[[1]]){
+  #get golden standard
+  G = get_GoldStand(data)
+  y = G$y
+  a_c =G$a_c
+  b_d = G$b_d 
+  
+  #hard start
+  lamda = Lamda
+  N = length(unique(y)) + 10
+  init_cluster = kmeans(Fea_wl,centers = N,nstart =1)
+  # initialization
+  label_i= init_cluster$cluster
+  
+  for (v in 1: (N -length(unique(y)))){
+    labels= get_labels(init_label= label_i,data = data)
+    for(j in 1:5){
+    #Parallel processing for greedy search
+    cores <- detectCores()-1
+    cl1 = makeCluster(cores,type = "FORK")
+    score<- parApply(cl1,labels,2,get_score,lamda,Fea_wol)
+    stopCluster(cl1)
+    #score <- aaply(labels,2,get_score,lamda,Fea_wol)
+      # extract the best score and N_hat and its F1 score
+      ind_N_hat <- which.max(score)
+      #ind_N_star <- which(F1==max(F1))
+      label_i <-labels[,ind_N_hat]
+      F1_N_hat = get_F1(label_i,A_C = a_c,B_D = b_d, data = data)
+      
+      # extract N_star
+      for(i in 1:ncol(labels)){
+        tmp = get_F1(init_label = labels[,i],A_C = a_c,B_D = b_d, data = data)
+        if(tmp > F1_N_hat){
+          ind_N_star = i
+          break()
+        }
+        else{ind_N_star = ind_N_hat}
+      }
+      label_j <- labels[,ind_N_star]
+      # update lamda
+      Fea_wol_star <- data.frame(cbind(label_1=label_i,Fea_wol))
+      Fea_wol_hat <- data.frame(cbind(label_1=label_j,Fea_wol))
+      F_T_star <- colSums(aggregate(Fea_wol_star,by=list(Fea_wol_star$label_1),FUN=mean))[-c(1,2)]
+      F_T_hat <- colSums(aggregate(Fea_wol_hat,by=list(Fea_wol_hat$label_1),FUN=mean))[-c(1,2)]
+      incre <- sqrt(sum((F_T_hat-F_T_star)^2))
+      lamda = lamda + 0.8*F_T_star - 0.8*F_T_hat
+    }
+  }
+  return(lamda)
+}
+
+```  
+
+### Train lamdas for all 14 txts  
+Since each txt contains different paper title and journal title, they gave different features. Using the same lamda will not be reasonable and the length will not match. Therefore, we trained 14 different lamdas utilizing 14 txt files.  
+
 ```{r,eval=FALSE}
-s1 = Sys.time()
-# using PCA, setting a threshold of 1e02 for std
 # initialize lamdas
 best_lamda = llply(Train,function(t) rep(1/ncol(t[,-1]),ncol(t[,-1])))
-
-#put every input of a txt we need into a big matrix
 Big_list = list()
 for (i in 1:14) {
   Lam = matrix(rep(best_lamda6[[i]],nrow(Train[[i]])),byrow = T,nrow = nrow(Train[[i]]))
   Big_mat = cbind(Train[[i]],Lam)
   Big_list[[i]] =  Big_mat 
 }
+# store the 14 best_lamda vectors here:
 best_lamda = llply(Big_list,function(t) Hier_clus(Fea_wl = t[,1:((ncol(t)+1)/2)],Fea_wol = t[,2:((ncol(t)+1)/2)],Lamda = t(t[1,((ncol(t)+3)/2):ncol(t)]),data = t[,1:((ncol(t)+1)/2)]))
+```  
 
-t1 = Sys.time() - s1
+### Test on the other half of the data  
 
+```{r,eval=FALSE}
 #test set
-test6= Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda6[[1]],data = Test[[6]])
+# function Hier_clus_test() returns the accuracy and pairwise F1 score of the clustering partition chosen using best_lamda
+test6 = Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda[[6]],data = Test[[6]])
+#accuracy = 60.3%
+```  
+
+## Step 4: Evaluation using pairwise F1 score  
+
+Here we evaluate the algorithm itself, looking at its performance on different datasets, various feature types and combination of input parameters.  
+We chose F1 score over accuracy, because the author informed us that they used pairwise F1 score as s_star and suggested that we should use that for evaluation. To better reproduce the result, we keep the criteria the same as before.  
+
+### Different dataset  
+
+Obviously, this does not do justice to the CEPr algorithm. If computation allows, better F1 can be obtained.
+The variance of these F1s replects the algorithm's performance on different datasets, some have authors that wrote very few papers. After observing the txts, it is safe to say that the algorithm prefers dataset that have a lot of citations per person, and equal citation amounts between different persons.  
+
+```{r,echo=FALSE}
+result_cepr = read.table("../data/test_result_3predictor_cepr.csv",as.is = T,sep = ",",header = T)
+colnames(result_cepr)[1] = "TXT_ID"
+result_cepr = na.omit(result_cepr)
+result_cepr[,1:2]
+```  
+
+### Different input parameters
+We designed a way to evaluate the effect of Error Driven Online Training, excluding the effect of kmeans hard start.  
+We train using the fifth txt, and two separate input parameters, for the first one, we update lamda twice at each level, for the other, 5 times.  
+It is observed that the more we update lamda, the better F1 score we get.  
+
+```{r}
+F1_compare = c(Update_2 = 0.205, Update_5 = 0.232)
+F1_compare
+```  
+### Different features  
+The algorithm is not that sensitive to feature changes.  
+
+```{r,echo=FALSE,warning=FALSE}
+result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
+colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
+ "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
+result[,c(2,4,6)]
+```  
+##Algorithm is
+##(1) Sensitive to the volume of data  
+The algorithm will yield better result if we have a relatively large citations from each person and every person sharing the same name has relatively equal amount of paper written.  
+With only 2 citations per person, one for train and one for test, the accuracy is very low because we know almost nothing about this person.  
+With person A having a lot of citations and person B having only a few, the features extracted (overlapping coauthors, term frequency of paper titles and journal titles) will be mostly about A, not B, since B will generate fewer coauthors and fewer paper title words and journal title words than A does.
+
+##(2) Computationally expensive  
+Assuming we have N papers with K different authors. In R, we were forced to reduce cluster tree level and the times we update at each level, which will decrease our accuracy greatly.  Also, it is required that at each level, we stop iteration only when lamda converges.
+For sake of efficiency, we update lamda fixed times for each level. Also, we implemented a hard start, which means that we clustered the papers into small number of clusters using kmeans then we proceeded with agglomerative clustering to cluster the papers into K clusters. And we used parallel processing.     
+
+## Suggestion for Further Study  
+Use programming languages that are very suitable for loops and iterations.  
+Use Parallel Processing whenever possible.  
+Consider using a much larger database as source.  
+If computational capacity allows, change the updating scheme of lamda to loop until convergence at each level as well as remove the hard start.
+
+
+
+## Evaluate two algorithm  
+
+```{r,echo=FALSE,warning=FALSE}
+result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
+colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
+ "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
+result[,c(2,8,4,10,6,12)]
+```
+```{r,eval=FALSE}
+#test set
+# function Hier_clus_test() returns the accuracy and pairwise F1 score of the clustering partition chosen using best_lamda
+test6 = Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda[[6]],data = Test[[6]])
+#accuracy = 60.3%
