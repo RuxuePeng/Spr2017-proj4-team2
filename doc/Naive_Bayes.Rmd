@@ -7,11 +7,13 @@ header-includes:
 output: html_document
 ---
 ```{r}
-###############################################################################
+###############################################################################################################
+###############################################################################################################
 # Please replace all the author names in this file to make sure you produce the right result, there are total 4 need to be replaced.
 
 # For example, if you want to test the result of "AKumar", then in the forth chunk you need to replace all "MMiller" to "AKumar". You can use Control+F and Replace ALl to make things easier.
-###############################################################################
+##############################################################################################################
+###############################################################################################################
 ```
 
 ###Load required libraries and the original dataset
