@@ -30,7 +30,7 @@ df<-function(A){
   df$numer_xi_seen_coau<-(df$Freq>1)*(df$Freq)
   
   # Calculate p(seen|co,xi)
-  df$prob_seen_cox1<-sum(df$numer_xi_seen_coau)/(sum(df$Freq)-df$Freq[1])
+  df$prob_seen_cox1<-sum(df$numer_xi_seen_coau)/(sum(df$Freq))
   # Calculate p(unseen|co,xi)
   df$prob_unseen_cox1<-1-df$prob_seen_cox1
   
