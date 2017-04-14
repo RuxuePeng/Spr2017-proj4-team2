@@ -14,7 +14,12 @@ Term: Spring 2017
 	+ Tongyue Liu
 + Project summary: In this project, we implement two algorithms on Author Disambiguation: (1) Naive Bayes method proposed by "Two Supervised Learning Approaches for Name Disambiguation in Citations" (Han,2004) and (2) Agglometative Clustering proposed by "Author Disambiguation Using Error Driven Machine Learning with a Ranking Loss Function". We further evaluate the predicting accuracy, algorithm sensitivity as well as implementation easiness of both method respectively. Due to a limitation of computational capacity, we made some reasonable modification to the original algorithm suggested in paper 5 (Culotta 2007). Suggestions for further improvement are also provided.
 	
-**Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
+**Contribution statement**: ([default](doc/a_note_on_contributions.md)) 
+
+Paper 2 is implemented by Xuanzi Xu and Tongyue Liu   
+Paper 5 is implemented by Jiahui Tan, Ruxue Peng and Jiahao Zhang
+
+All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
