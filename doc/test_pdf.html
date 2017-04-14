@@ -132,73 +132,15 @@ $(document).ready(function () {
 C: Clustering<br />
 E:Error Driven<br />
 Pr: Ranking perceptron lamda_t+1 = lamda_t + F(T)</p>
-<p>Basically, we defined a scoring system and performed agglomerative clustering on paper citations. We updated the scoring weight <span class="math inline">\(lamda\)</span> through ranking perceptron scheme. At last, we output the best <span class="math inline">\(lamda\)</span> for the scoring system so that we could find the best clustering partition in test set.</p>
+<div id="basically-we-defined-a-scoring-system-and-performed-agglomerative-clustering-on-paper-citations.-we-updated-the-scoring-weight-lamda-through-ranking-perceptron-scheme.-at-last-we-output-the-best-lamda-for-the-scoring-system-so-that-we-could-find-the-best-clustering-partition-in-test-set." class="section level4">
+<h4>Basically, we defined a scoring system and performed agglomerative clustering on paper citations. We updated the scoring weight <span class="math inline">\(lamda\)</span> through ranking perceptron scheme. At last, we output the <span class="math inline">\(best lamda\)</span> for the scoring system so that we could find the best clustering partition in test set.</h4>
+</div>
 <div id="step-0-load-the-packages-and-fucntions" class="section level2">
 <h2>Step 0: Load the packages and fucntions</h2>
-<pre class="r"><code>packages.used=c(&quot;plyr&quot;,&quot;dplyr&quot;,&quot;text2vec&quot;,&quot;qlcMatrix&quot;,&quot;kernlab&quot;, &quot;parallel&quot;)
-# check packages that need to be installed.
-packages.needed=setdiff(packages.used, 
-                        intersect(installed.packages()[,1], 
-                                  packages.used))
-if(length(packages.needed)&gt;0){
-  install.packages(packages.needed, dependencies = TRUE,
-                   repos='http://cran.us.r-project.org')
-}
-
-library(plyr)
-library(text2vec)
-library(qlcMatrix)
-library(kernlab)
-library(dplyr)
-library(parallel)
-source(&quot;../lib/get_F1.R&quot;)
-source(&quot;../lib/get_F1_accu.R&quot;)
-source(&quot;../lib/get_labels_individual.R&quot;)
-source(&quot;../lib/get_score_individual.R&quot;)
-source(&quot;../lib/create_overlap.R&quot;)
-source(&quot;../lib/Split_individual.R&quot;)
-source(&quot;../lib/get_GoldStand.R&quot;)
-source(&quot;../lib/hier_clus_train_individual.R&quot;)
-source(&quot;../lib/hier_clus_for_test.R&quot;)
-source(&quot;../lib/create_journal.R&quot;)
-source(&quot;../lib/create_paper.R&quot;)
-source(&quot;../lib/get_feature_individual.R&quot;)
-source(&quot;../lib/Hier_clus_for_test.R&quot;)</code></pre>
 </div>
 <div id="step-1-data-processing---parse-txt-data" class="section level2">
 <h2>Step 1: Data Processing - Parse Txt Data</h2>
-<p>Following the experiment section in the paper, we used coauthors’ names, paper titles as well as journal titles to design features for citations. A function create_data() is written to automate this.</p>
-<pre class="r"><code>#function for data pre-processing
-create_data &lt;- function(filename){
-  #name &lt;- deparse(substitute(filename))
-  tmp &lt;- read.csv(filename,
-                  header = F,
-                  sep = &quot;\n&quot;)    
-  rule = &quot;&lt;([[:alpha:]]|[[:punct:]]){1,4}&gt;&quot;
-  tmp$V1 = gsub(rule,&quot;&quot;,tmp$V1)
-  rule1 = &quot;&gt;([[:alpha:]]){1,5}:&quot;
-  tmp$V1 = gsub(rule1,&quot;&gt;&quot;,tmp$V1)
-  Sys.setlocale('LC_ALL','C')
-  L = strsplit(tmp$V1,split = &quot;&gt;&quot;)
-  tmp$Coauthor = laply(L,function(t) t[1])
-  tmp$Paper = laply(L,function(t) t[2])
-  tmp$Journal = laply(L,function(t) t[3])
-  
-  # extract canonical author id befor &quot;_&quot;
-  tmp$AuthorID &lt;- as.numeric(sub(&quot;_.*&quot;,&quot;&quot;,tmp$Coauthor))
-  # extract paper number under same author between &quot;_&quot; and first whitespace
-  tmp$PaperNO &lt;- as.numeric(sub(&quot;.*_(\\w*)\\s.*&quot;, &quot;\\1&quot;, tmp$Coauthor))
-  # delete &quot;&lt;&quot; in AKumar$Coauthor, you may need to further process the coauthor
-  # term depending on the method you are using
-  tmp$Coauthor &lt;- gsub(&quot;&lt;&quot;,&quot;&quot;,sub(&quot;^.*?\\s&quot;,&quot;&quot;, tmp$Coauthor))
-  # delete &quot;&lt;&quot; in AKumar$Paper
-  tmp$Paper &lt;- gsub(&quot;&lt;&quot;,&quot;&quot;,tmp$Paper)
-  # add PaperID for furthur use, you may want to combine all the nameset files and 
-  # then assign the unique ID for all the citations
-  tmp$PaperID &lt;- rownames(tmp)
-  tmp = tmp[,-1]
-  return(tmp)
-}</code></pre>
+<p>Following the experiment section in the paper, we used coauthors’ names, paper titles as well as journal titles to design features for citations. A function named create_data() is written to automate this. Inside it, we used regular expressions.</p>
 <pre class="r"><code>## apply function
 setwd(&quot;../data/nameset&quot;)
 file_names &lt;- list.files(pattern = &quot;*.txt&quot;)
@@ -224,7 +166,7 @@ About “TF-IDF” (term frequency-inverse document frequency)</p>
 \]</span></p>
 <div id="feature-construction-and-reduction" class="section level3">
 <h3>Feature Construction and Reduction</h3>
-<p>We use PCA to reduce features and wrote feature construction function: get_feature(). For details of the function, please go to ../lib/get_feature.R</p>
+<p>To increase speed, we used PCA to reduce features and wrote feature construction function: get_feature(). For details of the function, please go to ../lib/get_feature.R</p>
 <pre class="r"><code># f returns the PCAs with true labels on the 1st column
 Fea = llply(Data,get_feature)</code></pre>
 </div>
@@ -323,11 +265,15 @@ test6 = Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda[[6]],data = Test[[6]]
 </div>
 <div id="step-4-evaluation-using-pairwise-f1-score" class="section level2">
 <h2>Step 4: Evaluation using pairwise F1 score</h2>
-<p>Here we evaluate the algorithm itself, looking at its performance on different datasets, various feature types and combination of input parameters.<br />
-We chose F1 score over accuracy, because the author informed us that they used pairwise F1 score as s_star and suggested that we should use that for evaluation. To better reproduce the result, we keep the criteria the same as before.</p>
+<div id="here-we-looks-at-algorithms-performance-on-different-datasets-various-feature-types-and-combination-of-input-parameters." class="section level4">
+<h4>Here we looks at algorithm’s performance on different datasets, various feature types and combination of input parameters.</h4>
+<p>We chose F1 score over accuracy, because the author informed us that they used pairwise F1 score as s_star and suggested that we should use that for evaluation. To better reproduce the result, we keep the criteria the same as before.</p>
+</div>
 <div id="different-dataset" class="section level3">
 <h3>Different dataset</h3>
-<p>Obviously, this does not do justice to the CEPr algorithm. If computation allows, better F1 can be obtained. The variance of these F1s replects the algorithm’s performance on different datasets, some have authors that wrote very few papers. After observing the txts, it is safe to say that the algorithm prefers dataset that have a lot of citations per person, and equal citation amounts between different persons.</p>
+<p>Obviously, this does not do justice to the CEPr algorithm. If computation allows, better F1 can be obtained. The variance of these F1s replects the algorithm’s performance on different datasets, some have authors that wrote very few papers.</p>
+<div id="after-observing-the-txts-it-is-safe-to-say-that-the-algorithm-prefers-dataset-that-have-a-lot-of-citations-per-person-and-equal-citation-amounts-between-different-persons." class="section level4">
+<h4>After observing the txts, it is safe to say that the algorithm prefers dataset that have a lot of citations per person, and equal citation amounts between different persons.</h4>
 <pre><code>##    TXT_ID F1_CEPr
 ## 2       2   0.245
 ## 4       4   0.173
@@ -338,15 +284,18 @@ We chose F1 score over accuracy, because the author informed us that they used p
 ## 10     10   0.232
 ## 11     11   0.262</code></pre>
 </div>
+</div>
 <div id="different-input-parameters" class="section level3">
 <h3>Different input parameters</h3>
 <p>We designed a way to evaluate the effect of Error Driven Online Training, excluding the effect of kmeans hard start.<br />
-We train using the fifth txt, and two separate input parameters, for the first one, we update lamda twice at each level, for the other, 5 times.<br />
-It is observed that the more we update lamda, the better F1 score we get.</p>
+We train using the fifth txt, and two separate input parameters, for the first one, we update lamda twice at each level, for the other, 5 times.</p>
+<div id="it-is-observed-that-the-more-we-update-lamda-the-better-f1-score-we-get." class="section level4">
+<h4>It is observed that the more we update lamda, the better F1 score we get.</h4>
 <pre class="r"><code>F1_compare = c(Update_2 = 0.205, Update_5 = 0.232)
 F1_compare</code></pre>
 <pre><code>## Update_2 Update_5 
 ##    0.205    0.232</code></pre>
+</div>
 </div>
 <div id="different-features" class="section level3">
 <h3>Different features</h3>
@@ -362,20 +311,273 @@ F1_compare</code></pre>
 </div>
 <div id="sensitive-to-the-volume-of-data" class="section level2">
 <h2>(1) Sensitive to the volume of data</h2>
-<p>The algorithm will yield better result if we have a relatively large citations from each person and every person sharing the same name has relatively equal amount of paper written.<br />
-With only 2 citations per person, one for train and one for test, the accuracy is very low because we know almost nothing about this person.<br />
+<div id="the-algorithm-will-yield-better-result-if-we-have-a-relatively-large-citations-from-each-person-and-every-person-sharing-the-same-name-has-relatively-equal-amount-of-paper-written." class="section level4">
+<h4>The algorithm will yield better result if we have a relatively large citations from each person and every person sharing the same name has relatively equal amount of paper written.</h4>
+<p>With only 2 citations per person, one for train and one for test, the accuracy is very low because we know almost nothing about this person.<br />
 With person A having a lot of citations and person B having only a few, the features extracted (overlapping coauthors, term frequency of paper titles and journal titles) will be mostly about A, not B, since B will generate fewer coauthors and fewer paper title words and journal title words than A does.</p>
+</div>
 </div>
 <div id="computationally-expensive" class="section level2">
 <h2>(2) Computationally expensive</h2>
-<p>Assuming we have N papers with K different authors. In R, we were forced to reduce cluster tree level and the times we update at each level, which will decrease our accuracy greatly. Also, it is required that at each level, we stop iteration only when lamda converges. For sake of efficiency, we update lamda fixed times for each level. Also, we implemented a hard start, which means that we clustered the papers into small number of clusters using kmeans then we proceeded with agglomerative clustering to cluster the papers into K clusters. And we used parallel processing.</p>
+<div id="assuming-we-have-n-papers-with-k-different-authors.-in-r-we-were-forced-to-reduce-cluster-tree-level-and-the-times-we-update-at-each-level-which-will-decrease-our-accuracy-greatly.-also-it-is-required-that-at-each-level-we-stop-iteration-only-when-lamda-converges." class="section level4">
+<h4>Assuming we have N papers with K different authors. In R, we were forced to reduce cluster tree level and the times we update at each level, which will decrease our accuracy greatly. Also, it is required that at each level, we stop iteration only when lamda converges.</h4>
+<p>For sake of efficiency, we update lamda fixed times for each level. Also, we implemented a hard start, which means that we clustered the papers into small number of clusters using kmeans then we proceeded with agglomerative clustering to cluster the papers into K clusters. And we used parallel processing.</p>
 </div>
-<div id="suggestion-for-further-study" class="section level2">
-<h2>Suggestion for Further Study</h2>
-<p>Use programming languages that are very suitable for loops and iterations.<br />
-Use Parallel Processing whenever possible.<br />
-Consider using a much larger database as source.<br />
-If computational capacity allows, change the updating scheme of lamda to loop until convergence at each level as well as remove the hard start.</p>
+</div>
+<div id="step-5-suggestion-for-further-study" class="section level2">
+<h2>Step 5: Suggestion for Further Study</h2>
+<div id="use-programming-languages-that-are-very-suitable-for-loops-and-iterations." class="section level4">
+<h4>Use programming languages that are very suitable for loops and iterations.</h4>
+</div>
+<div id="use-parallel-processing-whenever-possible." class="section level4">
+<h4>Use Parallel Processing whenever possible.</h4>
+</div>
+<div id="consider-using-a-much-larger-database-as-source." class="section level4">
+<h4>Consider using a much larger database as source.</h4>
+</div>
+<div id="if-computational-capacity-allows-change-the-updating-scheme-of-lamda-to-loop-until-convergence-at-each-level-as-well-as-remove-the-hard-start." class="section level4">
+<h4>If computational capacity allows, change the updating scheme of lamda to loop until convergence at each level as well as remove the hard start.</h4>
+</div>
+</div>
+</div>
+<div id="naive-bayes-paper" class="section level1">
+<h1>Naive Bayes Paper</h1>
+<div id="load-required-libraries-and-the-original-dataset" class="section level3">
+<h3>Load required libraries and the original dataset</h3>
+</div>
+<div id="generate-trainset-and-testset-random-split-the-data-into-half-and-half-in-each-group-each-group-here-means-each-identity-author-id." class="section level3">
+<h3>Generate trainset and testset, random split the data into half and half in each group, each group here means each identity author ID.</h3>
+<pre class="r"><code>set.seed(200)
+train&lt;- get_train_test(Data$JRobinson.txt)$train[,c(2,5)]
+test&lt;-get_train_test(Data$JRobinson.txt)$test[,c(2,5)]</code></pre>
+</div>
+</div>
+<div id="naive-bayes-model" class="section level1">
+<h1>Naive Bayes Model</h1>
+<p>We assume that each author’s citation data is generated by the naive Bayes model, and use his/her past citations as the training data to estimate the model parameters. Based on the parameter estimates, we use the Bayes rule to calculate the probability that each name entry <span class="math inline">\(X_i(i\in [1,N])\)</span>, where <span class="math inline">\(N\)</span> is the total number of candidate name entries in the citation database) would have generated the input citation.</p>
+<p>Given an input test citation <span class="math inline">\(C\)</span> with the omission of the query author, the target function is to find a name entry Xi in the citation database with the maximal posterior probability of producing the citation <span class="math inline">\(C\)</span>, i.e.,</p>
+<span class="math display">\[\begin{equation}
+max_iP(x_i | C)
+\end{equation}\]</span>
+<p>Using the Bayes rule, the problem becomes finding</p>
+<span class="math display">\[\begin{equation}
+max_iP(x_i | C) = max_iP(C | X_i)P(X_i)/P(C)
+\end{equation}\]</span>
+where <span class="math inline">\(P(X_i)\)</span> denotes the prior probability of Xi authoring papers, and is estimated from the training data as the proportion of the papers of <span class="math inline">\(X_i\)</span> among all the citations.
+<span class="math display">\[\begin{equation}
+P(X_i) = \frac{\text{# papers of $X_i$}}{\text{# all citations}}
+\end{equation}\]</span>
+<span class="math inline">\(P(C)\)</span> denotes the probability of the citation C and is omitted since it does not depend on Xi. Then Function 2 becomes
+<span class="math display">\[\begin{equation}
+P(C|X_i)=\prod_{j}P(A_j|X_i) = \prod_{j}\prod_{k}P(A_{jk}|X_i)
+\end{equation}\]</span>
+<p>where <span class="math inline">\(A_j\)</span> denotes the different type of attribute; that is, <span class="math inline">\(A_1\)</span> - the coauthor names; <span class="math inline">\(A_2\)</span> - the paper title; <span class="math inline">\(A_3\)</span> - the journal title. Each attribute is decomposed into independent elements represented by <span class="math inline">\(A_{jk}\)</span> <span class="math inline">\((k \in [0..K(j)])\)</span>. <span class="math inline">\(K(j)\)</span> is the total number of elements in attribute <span class="math inline">\(A_j\)</span>.</p>
+<p>To avoid underflow, we store log probabilities in our implementation, and the target function becomes:</p>
+<span class="math display">\[\begin{equation}
+max_iP(X_i|C)=max_i[\sum_{j}\sum_{k}\log(P(A_{jk}|X_i))+\log(P(X_i))]
+\end{equation}\]</span>
+<p>where <span class="math inline">\(j\in[1,3]\)</span> and <span class="math inline">\(k\in[0,K(j)]\)</span>.</p>
+</div>
+<div id="model-parameters-and-estimation" class="section level1">
+<h1>Model parameters and Estimation</h1>
+<div id="decomposition-and-estimation-of-the-coauthor-conditional-probability-pa_1x_i" class="section level3">
+<h3>Decomposition and estimation of the coauthor conditional probability <span class="math inline">\(P(A_1|X_i)\)</span></h3>
+<p>From the training citations, we calculate the following conditional probabilities.</p>
+<span class="math inline">\(P(N|X_i)\)</span> -the probability of <span class="math inline">\(X_i\)</span> writing a future paper alone conditioned on the event of <span class="math inline">\(X_i\)</span>, estimated as the proportion of the papers that <span class="math inline">\(X_i\)</span> authors alone among all the papers of <span class="math inline">\(X_i\)</span>. (N stands for “No coauthor”, and “Co” below stands for “Has coauthor”).
+<span class="math display">\[\begin{equation}
+P(N|X_i) = \frac{\text{# of papers $X_i$ authors alone}}{\text{# of all the paper of $X_i$}}
+\end{equation}\]</span>
+<span class="math inline">\(P(Co|Xi)\)</span> - the probability of <span class="math inline">\(X_i\)</span> writing a future paper with coauthors conditioned on the event of <span class="math inline">\(X_i\)</span>.
+<span class="math display">\[\begin{equation}
+P(Co|X_i) = 1-P(N|X_i)
+\end{equation}\]</span>
+<span class="math inline">\(P(Seen|Co,X_i)\)</span> - the probability of <span class="math inline">\(X_i\)</span> writing a future paper with previously seen coauthors conditioned on the event that <span class="math inline">\(X_i\)</span> writes a future paper with coauthors. We regard the coauthors coauthoring a paper with <span class="math inline">\(X_i\)</span> at least twice in the training citations as the “seen coauthors”; the other coauthors coauthoring a paper with <span class="math inline">\(X_i\)</span> only once in the training citations is considered as the “unseen coauthors”. Therefore, we estimate <span class="math inline">\(P(Seen|Co,X_i)\)</span> as the proportion of the number of times that <span class="math inline">\(X_i\)</span> coauthors with “seen coauthors” among the total number of times that <span class="math inline">\(X_i\)</span> coauthors with any coauthor. Note that if <span class="math inline">\(X_i\)</span> has n coauthors in a training citation <span class="math inline">\(C\)</span>, we count that <span class="math inline">\(X_i\)</span> coauthors <span class="math inline">\(n\)</span> times in citation <span class="math inline">\(C\)</span>.
+<span class="math display">\[\begin{equation}
+P(Seen|Co,X_i) = \frac{\text{# of times $X_i$ coauthors with seen coauthors}}{\text{# of times $X_i$ coauthors with any coauthor}}
+\end{equation}\]</span>
+<span class="math inline">\(P(Unseen|Co,X_i)\)</span> the probability of <span class="math inline">\(X_i\)</span> writing a future paper with “unseen coauthors” conditioned on the event that <span class="math inline">\(X_i\)</span> writes a paper with coauthors.
+<span class="math display">\[\begin{equation}
+P(Unseen|Co,X_i) =1-P(Seen|Co,X_i)
+\end{equation}\]</span>
+<span class="math inline">\(P(A_{1k}|Seen,Co,X_i)\)</span> - the probability of <span class="math inline">\(X_i\)</span> writing a future paper with a particular coauthor <span class="math inline">\(A_{1k}\)</span> conditioned on the event that <span class="math inline">\(X_i\)</span> writes a paper with previously seen coauthors. We estimate it as the proportion of the number of times that <span class="math inline">\(X_i\)</span> coauthors with <span class="math inline">\(A_{1k}\)</span> among the total number of times <span class="math inline">\(X_i\)</span> coauthors with any coauthor.
+<span class="math display">\[\begin{equation}
+P(A1k|Seen,Co,X_i)=\frac{\text{# of times $X_i$ coauthors with $A_{1k}$}}{\text{# of times $X_i$ coauthors with seen coauthors}}
+\end{equation}\]</span>
+<span class="math inline">\(P(A_{1k}|Unseen,Co,X_i)\)</span> - the probability of Xi writing a future paper with a particular coauthor <span class="math inline">\(A_{1k}\)</span> conditioned on the event that <span class="math inline">\(X_i\)</span> writes a paper with unseen coauthors. Considering all the names in the training citations as the population and assuming that <span class="math inline">\(X_i\)</span> has equal probability to coauthor with an unseen author, we estimate <span class="math inline">\(P(A_{1k}|Unseen,Co,X_i)\)</span> as 1 divided by the total number of author (or coauthor) names in the training citations minus the number of coauthors of {X_i}.
+<span class="math display">\[\begin{equation}
+P(A_{1k}|Unseen,Co,X_i)=\frac{1}{\text{# of all authors}+\text{# of coauthors of $X_i$}}
+\end{equation}\]</span>
+<p>Based on above, creat a Data Frame <span class="math inline">\(Author Data\)</span> which includes coauthors names, author ID, and number of times the author coauthors with this specific coauthor. In addition, in this dataframe we include the <span class="math inline">\(P(Co|X_i)\)</span>, <span class="math inline">\(P(Seen | CO, X_i)\)</span>, <span class="math inline">\(P(Unseen | Co, X_i)\)</span>, and the number of times <span class="math inline">\(X_i\)</span> coauthors with any seen coauthor.</p>
+<pre class="r"><code>a_train&lt;-tapply(train$Coauthor,train$AuthorID,strsplit,split=&quot;;&quot;)
+a_train&lt;-subset(a_train,llply(a_train, length) != 1)
+#class(a_train)
+
+# Create a dataframe of author DJohnson
+
+# number of indentity authors
+n&lt;-length(a_train)
+
+Author_data&lt;-data.frame()
+for(i in 1:n){
+  author&lt;-df(a_train[[i]])
+  author$author_id&lt;-i
+  Author_data&lt;-rbind(Author_data,author)
+}
+
+# Remove author him/herself
+Author_data&lt;-Author_data[which(Author_data$Var1 != &quot;YChen&quot;),]
+# Remove blanket
+Author_data&lt;-Author_data[which(Author_data$Var1 != &quot;&quot;),]
+
+# Number of existing author ID, since maybe one author id just has one paper and doesn't have any coauthor
+exist_author_id&lt;-unique(Author_data$author_id)
+
+m&lt;-length(unique(Author_data$author_id))</code></pre>
+<p>Here we calculate the 5 probabilities based on the above dataframe.</p>
+<pre class="r"><code># What we need to compute is prob_A1k_seencoxi
+# Creat a dataframe seen_df which shows number of times xi coauthors with A1k
+seen_df&lt;-as.data.frame(matrix(NA,ncol = nrow(Author_data),nrow = m))
+colnames(seen_df)&lt;-Author_data$Var1
+
+for (i in 1:m){
+  for (j in 1: nrow(Author_data)){
+    seen_df[i,j]&lt;-ifelse(Author_data$author_id[j] == exist_author_id[i],
+                         Author_data$numer_xi_seen_coau[j],0)}}
+
+unique_coauthor&lt;-unique(colnames(seen_df))
+SEEN_DF&lt;-matrix(NA, nrow = m,ncol = length(unique_coauthor))
+colnames(SEEN_DF)&lt;-unique_coauthor
+
+for(i in 1:length(unique_coauthor)){
+  
+  logical_v&lt;-colnames(seen_df) == unique_coauthor[i]
+  
+  if(sum(logical_v)&gt;1){
+    SEEN_DF[,i]&lt;-rowSums(seen_df[,colnames(seen_df) == i])
+  }else{
+    SEEN_DF[,i]&lt;-seen_df[,logical_v]
+  }
+}
+
+# number of times xi coauthors with any seen coauthors
+nxi_seen&lt;-tapply(Author_data$numer_xi_seen_coau,Author_data$author_id,sum)
+
+# p(seen | co,xi)
+p_seen_coxi&lt;-as.numeric(tapply(Author_data$prob_seen_cox1,Author_data$author_id,unique))
+#p_seen_coxi[which(is.na(p_seen_coxi)|p_seen_coxi == Inf|p_seen_coxi == -Inf)]&lt;-1
+
+# p(co | xi)
+p_co_xi&lt;-as.numeric(tapply(Author_data$prob_cox1,Author_data$author_id,unique))
+
+# p(unseen|co,xi)
+p_unseen_coxi&lt;-as.numeric(tapply(Author_data$prob_unseen_cox1,Author_data$author_id,unique))
+#p_unseen_coxi[which(is.na(p_unseen_coxi)|p_unseen_coxi == Inf|p_unseen_coxi == -Inf)]&lt;-0
+
+# number of all authors and coauthors
+all_a_c&lt;-length(unique(Author_data$Var1))+n
+
+# number of coauthors of xi
+number_coa_xi&lt;-rep(NA, m)
+for(i in 1:m){
+  number_coa_xi[i]&lt;-nrow(Author_data[Author_data$author_id == exist_author_id[i],])
+}
+
+# p(A1k|unseen,co,xi)
+p_A1k_unseencoxi&lt;-1/(all_a_c - number_coa_xi)
+
+# The first seen term
+seen_term&lt;-p_seen_coxi*p_co_xi
+
+# The second term of object function p(A1k|unseen,co,xi)*p(unseen|co,xi)*p(co | xi) becomes
+unseen_term&lt;-p_A1k_unseencoxi*p_unseen_coxi*p_co_xi
+
+# p(xi)
+count_xi&lt;-as.numeric(table(train$AuthorID))
+p_xi&lt;-count_xi/sum(count_xi)
+
+# P(N|xi)
+P_N_xi&lt;-c()
+for(i in 1:length(unique(train$AuthorID))){
+  xi&lt;-subset(train, AuthorID == i)
+    l&lt;-laply(laply(xi$Coauthor,strsplit,&quot;;&quot;), length)
+    P_N_xi[i]&lt;-sum(l == 1)/length(l)}</code></pre>
+<p>Given a citation, which only include the coauthors names, we can predict the author ID based on Naive Bayes approch. First, we need to see if the given citation has any coauthor, if no, we say that the <span class="math inline">\(P(A_1|X_i) = P(N|X_i)\)</span>, otherwise we calculate <span class="math inline">\(P(A_{1k}|X_i) = P(A_{11}|X_i)...P(A_{1K}|X_{i})\)</span>, where</p>
+<span class="math display">\[\begin{equation}
+P(A_{1k}|X_i) = P(A_{1k},N|X_i)+P(A_{1k},Co|X_i) = 0+P(A_{1k},Co|X_i)=P(A_{1k}|Seen,Co,X_i)+P(A_{1k}|Unseen,Co,X_i) \\
+=P(A_{1k}|Seen,Co,X_i)*P(Seen|Co,X_i)*P(Co|X_i)+P(A_{1k}|Unseen,Co,X_i)*P(Unseen|Co,X_i)*P(Co|X_i)
+\end{equation}\]</span>
+<p>and then calculate the object function <span class="math inline">\(P(X_i|C)\)</span>, we find the one with the largest value which is our predict author ID.</p>
+<pre class="r"><code># Transfer above into a function
+#Transfer the citation of into a data frame
+
+predict_label&lt;-rep(NA, nrow(test))
+#predict_label&lt;-c()
+for(i in 1:nrow(test)){
+  predict_label[i]&lt;-citation_A1(test[i,1],&quot;JRobinson&quot;)}
+#predict_label
+
+predict_label&lt;-as.numeric(predict_label)</code></pre>
+<p>And then for the other two parts:</p>
+<pre class="r"><code>testtemp&lt;-testclean(test)
+paper&lt;-NULL
+for(i in 1:nrow(test)){
+  paper[i]&lt;-strsplit(testtemp$Title[i],split = &quot;\\s{1,3}&quot; )
+}
+paper&lt;-f3(paper)
+pred_label&lt;-judgement(paper)</code></pre>
+</div>
+<div id="decomposition-and-estimation-of-the-coauthor-conditional-probability-pa_2x_i-and-pa_3x_i" class="section level3">
+<h3>Decomposition and estimation of the coauthor conditional probability <span class="math inline">\(P(A_2|X_i)\)</span> and <span class="math inline">\(P(A_3|X_i)\)</span></h3>
+<p>Different from A_1, the other two features, the paper title and the journal title can be dealt with the same way but a little shorter. That is because you don’t need to cae about such situation like “no title”, we justneed to focus the appearance of the key words to find the probability.</p>
+<span class="math display">\[\begin{equation}
+P(A2k|X_i)=\frac{\text{# of times $X_i$ uses $A_{2k}$}}{\text{total # of times $A_{2k}$ was ever used}}
+\end{equation}\]</span>
+<span class="math display">\[\begin{equation}
+P(A3k|X_i)=\frac{\text{# of times $X_i$ uses $A_{3k}$}}{\text{total # of times $A_{3k}$ was ever used}}
+\end{equation}\]</span>
+<p>What we’re doing means that is we were given a test word, we can look up in our database to find the words used by different authors, and we supposed to believe that the words belongs to the author who used it most frequently.</p>
+<p>Here we calculate the probabilities based on our trained dataset.</p>
+<p>1.First to clean the data:</p>
+<pre class="r"><code>data0&lt;-Data[[5]]
+data0&lt;-dataprocess(data0)
+train&lt;-trainpro(data0)
+test&lt;-data0[-train$number,]
+temp&lt;-dataclean(train)</code></pre>
+<p>2.Compute the probabilities mentioned above:</p>
+<pre class="r"><code>#total number of words
+temp.num&lt;-NULL
+for(i in 1:nrow(temp)){
+  temp.num&lt;-paste(temp.num,temp$Title[i],sep = &quot; &quot;)
+}
+temp.num&lt;-unlist(strsplit(temp.num,split = &quot;\\s{1,10}&quot;))
+countnum&lt;-length(unique(temp.num))
+
+#All words ever appeared
+temp.num&lt;-unique(temp.num)[-1]
+
+#Output of our dictionary
+Fun13  =  function(word){adply(temp[,2],1,function(t) sum(word == unlist(strsplit(t,split = &quot; &quot;))))[,2]}
+final = apply(as.matrix(temp.num),1,Fun13)
+denom = matrix(rep(colSums(final),nrow(temp)),nrow = nrow(temp),byrow = T)
+final = final/denom
+colnames(final)&lt;-temp.num</code></pre>
+<p>We can look up in the above constructed dictionary whenever we were given a test data.</p>
+</div>
+<div id="get-f1-score-and-accuracy-for-a1a2a3" class="section level3">
+<h3>Get F1 Score and accuracy for A1,A2,A3</h3>
+<pre class="r"><code>#source(&quot;/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/get_GoldStand.r&quot;)
+#source(&quot;/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/get_F1.r&quot;)
+
+new_mydata&lt;-data.frame(test[,2],test[,1])
+colnames(new_mydata)&lt;-c(&quot;AuthorID&quot;, &quot;coauthor&quot;)
+#View(new_mydata)
+GoldStand&lt;-get_GoldStand(new_mydata)
+#F1&lt;-rep(NA,12)
+get_F1_accu(predict_label,new_mydata,GoldStand$a_c,GoldStand$b_d)</code></pre>
+<pre class="r"><code>new_mydata&lt;-data.frame(test[,3],test[,2])
+colnames(new_mydata)&lt;-c(&quot;AuthorID&quot;,&quot;papertitle&quot;)
+GoldStand&lt;-get_GoldStand(new_mydata)
+F1&lt;-get_F1_accu(pred_label,new_mydata,GoldStand$a_c,GoldStand$b_d)</code></pre>
 </div>
 <div id="evaluate-two-algorithm" class="section level2">
 <h2>Evaluate two algorithm</h2>
