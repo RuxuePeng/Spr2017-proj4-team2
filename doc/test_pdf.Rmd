@@ -19,6 +19,7 @@ Pr: Ranking perceptron lamda_t+1 = lamda_t + F(T)
 ## Step 0: Load the packages and fucntions
 
 ```{r, eval=FALSE,echo=FALSE}
+setwd("~/GitHub/Spr2017-proj4-team2")
 packages.used=c("plyr","dplyr","text2vec","qlcMatrix","kernlab", "parallel")
 # check packages that need to be installed.
 packages.needed=setdiff(packages.used, 
@@ -260,9 +261,10 @@ F1_compare
 The algorithm is not that sensitive to feature changes.  
 
 ```{r,echo=FALSE,warning=FALSE}
-result = read.table("../output/output_1predictor_F1compare.csv",as.is = T,sep = ",",header = T)
-result[1:4]
-
+result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
+colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
+ "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
+result[,c(2,4,6)]
 ```  
 ##Algorithm is
 ##(1) Sensitive to the volume of data  
@@ -595,9 +597,10 @@ F1<-get_F1_accu(pred_label,new_mydata,GoldStand$a_c,GoldStand$b_d)
 ```
 
 Here, we can see the result clearly in the barcharts:
+
 Comparison between various features:
 ```{r}
-mydata<-read.csv("./output/resultaccuracy.csv",header = T)
+mydata<-read.csv("../output/resultaccuracy.csv",header = T)
 
 ggplot(mydata, aes(factor(txt_id), Accuracy, fill = Class)) + 
   geom_bar(stat="identity", position = "dodge") + 
@@ -606,12 +609,12 @@ ggplot(mydata, aes(factor(txt_id), Accuracy, fill = Class)) +
   ggtitle("Accuracy rate for A1 A2 A3 in each txt")
 
 ```
-Clearly, we see that the perfomance of journal title and paper title are quite similar, but both are a little bit different from the coauthor. This happens mainly because we have different feature extraction models,
-
+Clearly, we see that the perfomance of journal title and paper title are quite similar, but both are a little bit different from the coauthor. This happens mainly because we have different feature extraction models,more restrictions requires a higher quality of the dataset. Those .txt files which have a lower accuracy rate always due to the poor data quality.
+As for the journal and paper title part, since every author has their own habits of using words and reaerch areas,so if we detect the author od a test citation, we can easily find the right answer of the author.
 
 We tried our hybrid models for some dataset and the result are showed below:
 ```{r}
-mydata<-read.csv("./output/resultaccuracy2.csv",header = T)
+mydata<-read.csv("../output/resultaccuracy2.csv",header = T)
 
 ggplot(mydata, aes(factor(txt_id), F1score, fill = Class)) + 
   geom_bar(stat="identity", position = "dodge") + 
@@ -619,11 +622,11 @@ ggplot(mydata, aes(factor(txt_id), F1score, fill = Class)) +
   xlab("text ID")+
   ggtitle("F1 score for A1,A2,A3 and their combination in each txt")
 ```
-
+The hybrid model gives us a higher accuracy mainly because of the more features are provided to judge for the result. The higher F1 score also certifies that the model has been improved but not overfit.
 
 Comparison of the F1 and Accuracy in each feature:
 ```{r}
-mydata<-read.csv("./output/co_p_j.csv",header = T)
+mydata<-read.csv("../output/co_p_j.csv",header = T)
 mydata1<-mydata[1:28,]
 mydata2<-mydata[29:56,]
 mydata3<-mydata[57:84,]
@@ -648,12 +651,23 @@ ggplot(mydata3, aes(factor(txt_id), Value, fill = Class)) +
 
 ```
 
+We can see something interested in the above charts:
+We see that for the JLee, all features have a high accuracy but they only got a F1 score, this may means that the model we constructed are overfit. After checking in the imput data we find that authors pretend to use different words when they stat to write a new  paper. This habits gives us a high dictionary but no outstanding probabilities. 
+For MJones, we get both a high F1 and Accuracy. This is because the dataset is quite clean and every citation has enough information. Authors all tend to used old words instead of the new one which gives us more reliable probabilty dictionary.
+
+So, we can say that Naive Bayes gives us better result when the dataset is better. This is a lttle bit tricky, but the algotithm does depend on the dataset quite a lot. When we get an ideal dataset we can get a perfect prediction result.
+The algorithm do need a hugh dataset to save for the probabilty of the habit used words, coauthor names and something like that. So we need to collect enough information before we run for the algorithm. Besides, it can be changed hugely by the quality of the imput data which may not be a quite stable algorithm.
+
 ## Evaluate two algorithm  
 
-The following table exhibits the F1 score of the two algorithm under different features. Naive Bayes clearly outperformed  CEPr method. However, as we have discussed earlier, the F1 score doesn't reflect the true predictive power of CePr.  
-So we will mainly focus on F1 score for Naive Bayes. A rather low F1 score certainly raise concerns here.  We believe that this relatively low F1 score results from a small training data: note that we used half of our data in testing so a small training dataset fails to offer enough information for the learning process and thus limit the predicting power of our implementation.   
-
 ```{r,echo=FALSE,warning=FALSE}
-result = read.table("../output/output_1predictor_F1compare.csv",as.is = T,sep = ",",header = T)
-result
-```  
+result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
+colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
+ "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
+result[,c(2,8,4,10,6,12)]
+```
+```{r,eval=FALSE}
+#test set
+# function Hier_clus_test() returns the accuracy and pairwise F1 score of the clustering partition chosen using best_lamda
+test6 = Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda[[6]],data = Test[[6]])
+#accuracy = 60.3%
