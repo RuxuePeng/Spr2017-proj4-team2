@@ -11,23 +11,25 @@ citation_A1<-function(citation_A1,author_name){
   colnames(test_i)<-"coauthor"
   #class(test1)
   
-  if (nrow(test_i) == 0 ){
-    predict_label<-0
+  # if the citation doesn't contain coauthors
+  if (nrow(test_i) == 0){
+    predict_label<-which.max(log(P_N_xi) + log(p_xi))
   }else{
+  # else the citation doesn't contain coauthors
     # extract the number of times xi coauthors with A1k
-    seen_df_i<-matrix(NA, nrow = n,ncol = nrow(test_i))
+    seen_df_i<-matrix(NA, nrow = m,ncol = nrow(test_i))
     colnames(seen_df_i) <- test_i$coauthor
     for(i in 1:ncol(seen_df_i)){
       if(test_i[i,1] %in% colnames(SEEN_DF)){
         seen_df_i[,i]<-SEEN_DF[,colnames(SEEN_DF)==test_i[i,1]]
       }else{
-        seen_df_i[,i]<-rep(0,n)
+        seen_df_i[,i]<-rep(0,m)
       }
     }
     
     # Calculate P(A1k|xi)
-    P_A1_x<-matrix(NA,nrow=n,ncol = ncol(seen_df_i))
-    for(i in 1:n){
+    P_A1_x<-matrix(NA,nrow=m,ncol = ncol(seen_df_i))
+    for(i in 1:m){
       for (j in 1: ncol(seen_df_i)){
         if(nxi_seen[i] !=0){
           P_A1k_seen_coxi<-seen_df_i[i,j]/nxi_seen[i]
@@ -38,8 +40,8 @@ citation_A1<-function(citation_A1,author_name){
       }
     }
     # Calculate P(Xi|C)
-    P_Xi_c<-rep(NA,length=n)
-    for(i in 1: n){
+    P_Xi_c<-rep(NA,length=m)
+    for(i in 1: m){
       LOG<-0
       for(j in 1:ncol(P_A1_x)){
         LOG<-LOG+log(P_A1_x[i,j])
@@ -48,7 +50,7 @@ citation_A1<-function(citation_A1,author_name){
     }
     
     # Predict xi
-    predict_label<-names(nxi_seen)[which.max(P_Xi_c)]
+    predict_label<-exist_author_id[which.max(P_Xi_c)]
   }
   
   return(predict_label)
