@@ -2,7 +2,9 @@
 title: "Project 4, Who is who"
 author: "Ruxue Peng,rp2815"
 date: "4/13/2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---  
 In this project, we implement two of the suggested papers:  
 (1) Han, Hui, et al. "Two supervised learning approaches for name disambiguation in author citations."  2004   
@@ -259,10 +261,9 @@ F1_compare
 The algorithm is not that sensitive to feature changes.  
 
 ```{r,echo=FALSE,warning=FALSE}
-result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
-colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
- "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
-result[,c(2,4,6)]
+result = read.table("../output/output_1predictor_F1compare.csv",as.is = T,sep = ",",header = T)
+result[1:4]
+
 ```  
 ##Algorithm is
 ##(1) Sensitive to the volume of data  
@@ -596,14 +597,10 @@ F1<-get_F1_accu(pred_label,new_mydata,GoldStand$a_c,GoldStand$b_d)
 
 ## Evaluate two algorithm  
 
+The following table exhibits the F1 score of the two algorithm under different features. Naive Bayes clearly outperformed  CEPr method. However, as we have discussed earlier, the F1 score doesn't reflect the true predictive power of CePr.  
+So we will mainly focus on F1 score for Naive Bayes. A rather low F1 score certainly raise concerns here.  We believe that this relatively low F1 score results from a small training data: note that we used half of our data in testing so a small training dataset fails to offer enough information for the learning process and thus limit the predicting power of our implementation.   
+
 ```{r,echo=FALSE,warning=FALSE}
-result = read.table("../data/test_result_1predictor.csv",as.is = T,sep = ",",header = T)
-colnames(result) = c("TXT_ID", "CEPr_Coauthor"      ,      "Accuracy_CEPr_Coauthor"   ,   "CEPr_Paper"      ,   "Accuracy_CEPr_Paper"  , "CEPr_Journal"    ,   "Accuracy_CEPr_Journal",
- "NB_Coauthor"  ,            "Accuracy_NB_Co"    ,    "NB_Paper"   ,        "Accuracy_NB_Paper" ,    "NB_Journal"   ,      "Accuracy_NB_Journal")
-result[,c(2,8,4,10,6,12)]
-```
-```{r,eval=FALSE}
-#test set
-# function Hier_clus_test() returns the accuracy and pairwise F1 score of the clustering partition chosen using best_lamda
-test6 = Hier_clus_test(Test[[6]],Test[[6]][,-1],best_lamda[[6]],data = Test[[6]])
-#accuracy = 60.3%
+result = read.table("../output/output_1predictor_F1compare.csv",as.is = T,sep = ",",header = T)
+result
+```  
