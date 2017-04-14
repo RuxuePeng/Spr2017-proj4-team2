@@ -18,7 +18,7 @@ Pr: Ranking perceptron lamda_t+1 = lamda_t + F(T)
 
 ## Step 0: Load the packages and fucntions
 
-```{r,echo=FALSE}
+```{r,echo=FALSE, warning=FALSE}
 packages.used=c("plyr","dplyr","text2vec","qlcMatrix","kernlab", "parallel")
 # check packages that need to be installed.
 packages.needed=setdiff(packages.used, 
