@@ -289,7 +289,7 @@ In this project, we decided to follow the paper as closely as possible based on 
 
 We coded the hierarchical clustering from scratch, instead of using the hclust() package as the hclust() package would optimize each iteration using distances. In comparison, in this paper, the author optimizes over each iteration using a comparison of N^hat and Nstar, which we wanted to reproduce in true capacity in our algorithm. We also reproduced the error driven training algorithm as closely as we could based on the author's description, by updating lamda manually using his proposed F(T) score. 
 
-Even though our F1 accuracy did not come out as optimistic as we would had liked it to be, we believe that this could more to do with our lack of capacity to set the parameters to run as we would wish to, such as set J to run in each level of N until it converges (i.e Nhat = NStar), and to run more levels of N. Our code allows for this just that we could not run it as such as it would had taken too much time given that R is not the best with loops and iterations.  In all, it was indeed a very illuminating experience analyzing this paper. 
+Even though our F1 accuracy did not come out as optimistic as we would had liked it to be, we believe that this could be more to do with our lack of capacity to set the parameters to the ideal settings, such as set J to run in each level of N until it converges (i.e Nhat = NStar), and to run more levels of N. Our code allows for this just that we could not run it as such as it would had taken too much time given that R is not the best with loops and iterations.  In all, it was indeed a very illuminating experience analyzing this paper. 
 
 
 # Naive Bayes Paper  
