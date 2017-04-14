@@ -1,0 +1,16 @@
+testclean<-function(mat){
+  temp<-data.frame(mat[,3],mat[,2])
+  colnames(temp)<-c("AuthorID","Title")
+  temp$Title<-gsub("A ","",temp$Title)
+  temp$Title<-gsub("of ","",temp$Title)
+  temp$Title<-gsub("in ","",temp$Title)
+  temp$Title<-gsub("a ","",temp$Title)
+  temp$Title<-gsub("An ","",temp$Title)
+  temp$Title<-gsub("and ","",temp$Title)
+  temp$Title<-gsub("for ","",temp$Title)
+  temp$Title<-gsub("with ","",temp$Title)
+  temp$Title<-gsub(",","",temp$Title)
+  temp$Title<-gsub(":","",temp$Title)
+  temp$Title<-tolower(temp$Title)
+  return(temp)
+}
