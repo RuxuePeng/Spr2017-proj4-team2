@@ -2,9 +2,7 @@
 title: "Project 4, Who is who"
 author: "Ruxue Peng,rp2815"
 date: "4/13/2017"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document
 ---  
 In this project, we implement two of the suggested papers:  
 (1) Han, Hui, et al. "Two supervised learning approaches for name disambiguation in author citations."  2004   
@@ -37,6 +35,7 @@ library(qlcMatrix)
 library(kernlab)
 library(dplyr)
 library(parallel)
+library(ggplot2)
 source("../lib/get_F1.R")
 source("../lib/get_F1_accu.R")
 source("../lib/get_labels_individual.R")
@@ -577,8 +576,8 @@ We can look up in the above constructed dictionary whenever we were given a test
 
 ### Get F1 Score and accuracy for A1,A2,A3
 ```{r,eval=FALSE}
-#source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/get_GoldStand.r")
-#source("/Users/xuxuanzi/Desktop/Spr2017-proj4-team2/lib/get_F1.r")
+#source("../lib/get_GoldStand.r")
+#source("../lib/get_F1.r")
 
 new_mydata<-data.frame(test[,2],test[,1])
 colnames(new_mydata)<-c("AuthorID", "coauthor")
@@ -593,6 +592,60 @@ new_mydata<-data.frame(test[,3],test[,2])
 colnames(new_mydata)<-c("AuthorID","papertitle")
 GoldStand<-get_GoldStand(new_mydata)
 F1<-get_F1_accu(pred_label,new_mydata,GoldStand$a_c,GoldStand$b_d)
+```
+
+Here, we can see the result clearly in the barcharts:
+Comparison between various features:
+```{r}
+mydata<-read.csv("./output/resultaccuracy.csv",header = T)
+
+ggplot(mydata, aes(factor(txt_id), Accuracy, fill = Class)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1")+
+  xlab("text ID")+
+  ggtitle("Accuracy rate for A1 A2 A3 in each txt")
+
+```
+Clearly, we see that the perfomance of journal title and paper title are quite similar, but both are a little bit different from the coauthor. This happens mainly because we have different feature extraction models,
+
+
+We tried our hybrid models for some dataset and the result are showed below:
+```{r}
+mydata<-read.csv("./output/resultaccuracy2.csv",header = T)
+
+ggplot(mydata, aes(factor(txt_id), F1score, fill = Class)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1")+
+  xlab("text ID")+
+  ggtitle("F1 score for A1,A2,A3 and their combination in each txt")
+```
+
+
+Comparison of the F1 and Accuracy in each feature:
+```{r}
+mydata<-read.csv("./output/co_p_j.csv",header = T)
+mydata1<-mydata[1:28,]
+mydata2<-mydata[29:56,]
+mydata3<-mydata[57:84,]
+
+ggplot(mydata1, aes(factor(txt_id), Value, fill = Class)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set2")+
+  xlab("text ID")+
+  ggtitle("Accuracy rate vs F1 score for coauthor")
+
+ggplot(mydata2, aes(factor(txt_id), Value, fill = Class)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set2")+
+  xlab("text ID")+
+  ggtitle("Accuracy rate vs F1 score for paper title")
+
+ggplot(mydata3, aes(factor(txt_id), Value, fill = Class)) + 
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set2")+
+  xlab("text ID")+
+  ggtitle("Accuracy rate vs F1 score for journal title")
+
 ```
 
 ## Evaluate two algorithm  
