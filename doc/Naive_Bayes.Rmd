@@ -414,3 +414,18 @@ GoldStand<-get_GoldStand(new_mydata)
 F1<-get_F1_accu(pred_label2,new_mydata,GoldStand$a_c,GoldStand$b_d)
 F1
 ```
+
+Calculate $\log(P(A_1|X_i))$, $\log(P(A_2|X_i))$, $\log(P(A_3|X_i))$
+```{r, eval=FALSE}
+Log_A1<-matrix(NA, nrow = n, ncol = nrow(test1))
+for(i in 1: nrow(test1)){
+  Log_A1[,i]<-Log_A1_value(test1[i,1])}
+save(MMiller_log,file = "../output/YChen_A1.RData")
+```
+
+Then we use "Calculate_hybrid_Naive.R" file to calculate
+\begin{equation}
+max_iP(C|X_i)=max_i[\log(P(A_1|X_i))+\log(P(A_2|X_i))+\log(P(A_3|X_i))+\log(P(X_i))]
+\end{equation}
+to get the accuracy and F1 score of combine three features model
+
