@@ -606,8 +606,9 @@ ggplot(mydata, aes(factor(txt_id), Accuracy, fill = Class)) +
   ggtitle("Accuracy rate for A1 A2 A3 in each txt")
 
 ```
-Clearly, we see that the perfomance of journal title and paper title are quite similar, but both are a little bit different from the coauthor. This happens mainly because we have different feature extraction models,
 
+Clearly, we see that the perfomance of journal title and paper title are quite similar, but both are a little bit different from the coauthor. This happens mainly because we have different feature extraction models,more restrictions requires a higher quality of the dataset. Those .txt files which have a lower accuracy rate always due to the poor data quality.
+As for the journal and paper title part, since every author has their own habits of using words and reaerch areas,so if we detect the author od a test citation, we can easily find the right answer of the author.
 
 We tried our hybrid models for some dataset and the result are showed below:
 ```{r}
@@ -619,7 +620,7 @@ ggplot(mydata, aes(factor(txt_id), F1score, fill = Class)) +
   xlab("text ID")+
   ggtitle("F1 score for A1,A2,A3 and their combination in each txt")
 ```
-
+The hybrid model gives us a higher accuracy mainly because of the more features are provided to judge for the result. The higher F1 score also certifies that the model has been improved but not overfit.
 
 Comparison of the F1 and Accuracy in each feature:
 ```{r}
@@ -647,6 +648,13 @@ ggplot(mydata3, aes(factor(txt_id), Value, fill = Class)) +
   ggtitle("Accuracy rate vs F1 score for journal title")
 
 ```
+We can see something interested in the above charts:
+We see that for the JLee, all features have a high accuracy but they only got a F1 score, this may means that the model we constructed are overfit. After checking in the imput data we find that authors pretend to use different words when they stat to write a new  paper. This habits gives us a high dictionary but no outstanding probabilities. 
+For MJones, we get both a high F1 and Accuracy. This is because the dataset is quite clean and every citation has enough information. Authors all tend to used old words instead of the new one which gives us more reliable probabilty dictionary.
+
+So, we can say that Naive Bayes gives us better result when the dataset is better. This is a lttle bit tricky, but the algotithm does depend on the dataset quite a lot. When we get an ideal dataset we can get a perfect prediction result.
+The algorithm do need a hugh dataset to save for the probabilty of the habit used words, coauthor names and something like that. So we need to collect enough information before we run for the algorithm. Besides, it can be changed hugely by the quality of the imput data which may not be a quite stable algorithm.
+
 
 ## Evaluate two algorithm  
 
